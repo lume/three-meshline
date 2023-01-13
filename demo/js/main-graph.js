@@ -1,4 +1,6 @@
-'use strict'
+import * as THREE from 'three'
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
+import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
 
 var container = document.getElementById( 'container' );
 
@@ -13,7 +15,7 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setPixelRatio( window.devicePixelRatio );
 container.appendChild( renderer.domElement );
 
-var controls = new THREE.OrbitControls( camera, renderer.domElement );
+var controls = new OrbitControls( camera, renderer.domElement );
 var clock = new THREE.Clock();
 
 var colors = [
@@ -44,7 +46,8 @@ render();
 function makeLine( geo, c ) {
 
 	var g = new MeshLine();
-	g.setGeometry( geo );
+	// g.setGeometry( geo );
+	g.setPoints( geo );
 
 	var material = new MeshLineMaterial( {
 		useMap: false,
@@ -54,7 +57,7 @@ function makeLine( geo, c ) {
 		sizeAttenuation: false,
 		lineWidth: 10,
 	});
-	var mesh = new THREE.Mesh( g.geometry, material );
+	var mesh = new THREE.Mesh( g, material );
 	graph.add( mesh );
 
 }
@@ -107,19 +110,19 @@ function createLines() {
 	}
 	makeLine( line, 5 );
 
-	var line = new THREE.Geometry();
-	line.vertices.push( new THREE.Vector3( -30, -30, -30 ) );
-	line.vertices.push( new THREE.Vector3( 30, -30, -30 ) );
+	var line = [];
+	line.push( new THREE.Vector3( -30, -30, -30 ) );
+	line.push( new THREE.Vector3( 30, -30, -30 ) );
 	makeLine( line, 3 );
 
-	var line = new THREE.Geometry();
-	line.vertices.push( new THREE.Vector3( -30, -30, -30 ) );
-	line.vertices.push( new THREE.Vector3( -30, 30, -30 ) );
+	var line = [];
+	line.push( new THREE.Vector3( -30, -30, -30 ) );
+	line.push( new THREE.Vector3( -30, 30, -30 ) );
 	makeLine( line, 3 );
 
-	var line = new THREE.Geometry();
-	line.vertices.push( new THREE.Vector3( -30, -30, -30 ) );
-	line.vertices.push( new THREE.Vector3( -30, -30, 30 ) );
+	var line = [];
+	line.push( new THREE.Vector3( -30, -30, -30 ) );
+	line.push( new THREE.Vector3( -30, -30, 30 ) );
 	makeLine( line, 3 );
 
 }
@@ -150,10 +153,11 @@ window.addEventListener( 'resize', onWindowResize );
 
 function render() {
 
-	requestAnimationFrame( render );
 	controls.update();
 	graph.rotation.y += .25 * clock.getDelta();
 
 	renderer.render( scene, camera );
+
+	requestAnimationFrame( render );
 
 }
