@@ -41,19 +41,22 @@ Instead of using GL_LINE, it uses a strip of triangles billboarded. Some example
 
 #### Install
 
-First install `three-meshline`:
+First install `@lume/three-meshline`:
 
 ```
-npm i three-meshline
+npm i @lume/three-meshline
 ```
 
-Add the importmap to your HTML (you may skip this if you're using a build tool):
+Add the importmap to your HTML if you are using native [JavaScript modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) (if you have a build step handling your modules, you'd skip this):
 
 ```html
-<script src="./node_modules/three-meshline/importmap.js"></script>
+<script src="./node_modules/@lume/three-meshline/importmap.js"></script>
 ```
 
-If your browser doesn't support importmaps yet, you'll need to embed the importmap manually in your HTML along with an importmap polyfill like so:
+If your browser doesn't support
+[importmaps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap)
+natively yet, you can load an importmap polyfill then embed the
+importmap manually in your HTML like so:
 
 ```html
 <script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script>
@@ -62,8 +65,8 @@ If your browser doesn't support importmaps yet, you'll need to embed the importm
 		"imports": {
 			"three": "/node_modules/three/build/three.module.js",
 			"three/": "/node_modules/three/",
-			"three-meshline": "../src/THREE.MeshLine.js",
-			"three-meshline/": "../"
+			"@lume/three-meshline": "/node_modules/@lume/three-meshline/src/THREE.MeshLine.js",
+			"@lume/three-meshline/": "/node_modules/@lume/three-meshline/"
 		}
 	}
 </script>
@@ -72,7 +75,7 @@ If your browser doesn't support importmaps yet, you'll need to embed the importm
 Finally import into your code:
 
 ```js
-import {MeshLine, MeshLineMaterial, MeshLineRaycast} from 'three-meshline'
+import {MeshLine, MeshLineMaterial, MeshLineRaycast} from '@lume/three-meshline'
 ```
 
 <!-- Alternatively, without installing locally and using the import from
