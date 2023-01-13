@@ -1,6 +1,6 @@
 {
 	"name": "@lume/three-meshline",
-	"version": "1.3.0",
+	"version": "2.0.0",
 	"description": "Mesh-based replacement for THREE.Line",
 	"main": "src/THREE.MeshLine.js",
 	"repository": {
