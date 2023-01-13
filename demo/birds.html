@@ -16,12 +16,25 @@
 			<p>Efficient and fast line updating. Move your mouse around.</p>
 		</div>
 
-		<script src="js/three.min.js"></script>
-		<script src="js/OrbitControls.js"></script>
-		<script src="../src/THREE.MeshLine.js"></script>
-		<script src="js/Bird.js"></script>
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+        <script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "/node_modules/three/build/three.module.js",
+                    "three/": "/node_modules/three/",
+                    "@lume/three-meshline": "../src/THREE.MeshLine.js",
+                    "@lume/three-meshline/": "../"
+                }
+            }
+        </script>
 
-		<script>
+		<script type="module">
+            import * as THREE from 'three'
+            import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
+            import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+            import {Bird} from './js/Bird.js'
 
 			var scene = new THREE.Scene();
 
@@ -58,23 +71,30 @@
 				}, 250);
 
 				this.initTrail = function () {
-					// Create the line geometry used for storing verticies
-					this.trail_geometry = new THREE.Geometry();
-					for (var i = 0; i < 100; i++) {
-						// must initialize it to the number of positions it will keep or it will throw an error
-						this.trail_geometry.vertices.push(this.position.clone());
+					// Create the line mesh with all points set to the current bird
+
+                    // FIXME initial positions not working with typed array
+                    // const positions = new Float32Array(100 * 3)
+					// for (let i = 0; i < 100; i += 3) {
+                    //     positions[i + 0] = this.position.x
+                    //     positions[i + 1] = this.position.y
+                    //     positions[i + 2] = this.position.z
+					// }
+                    // FIXME initial positions works only with Vector3 array
+                    const positions = []
+					for (let i = 0; i < 100; i += 1) {
+                        positions.push(this.position.clone())
 					}
 
-					// Create the line mesh
 					this.trail_line = new MeshLine();
-					this.trail_line.setGeometry( this.trail_geometry,  function( p ) { return p; }  ); // makes width taper
+                    this.trail_line.setPoints(positions, (p) => 1 - (1 - p))
 
 					// Create the line material
-					this.trail_material = new MeshLineMaterial( {
+					this.trail_material = new MeshLineMaterial({
 						color: new THREE.Color( "rgb(255, 2, 2)" ),
 						opacity: 1,
 						resolution: resolution,
-						sizeAttenuation: 1,
+						// sizeAttenuation: 1,
 						lineWidth: 1,
 						depthTest: false,
 						blending: THREE.AdditiveBlending,
@@ -82,7 +102,7 @@
 						side: THREE.DoubleSide
 					});
 
-					this.trail_mesh = new THREE.Mesh( this.trail_line.geometry, this.trail_material ); // this syntax could definitely be improved!
+					this.trail_mesh = new THREE.Mesh( this.trail_line, this.trail_material ); // this syntax could definitely be improved!
 					this.trail_mesh.frustumCulled = false;
 
 					scene.add( this.trail_mesh );
@@ -259,7 +279,7 @@
 
 						boid = boids[ i ];
 
-						distance = boid.position.distanceTo( this.position );
+						const distance = boid.position.distanceTo( this.position );
 
 						if ( distance > 0 && distance <= _neighborhoodRadius ) {
 
@@ -397,7 +417,7 @@
 					scene.add( bird );
 				}
 
-				controls = new THREE.OrbitControls( camera,  renderer.domElement  );
+				controls = new OrbitControls( camera,  renderer.domElement  );
 				controls.enableDamping = true;
 				controls.dampingFactor = 0.25;
 				controls.enableZoom = false;
@@ -415,7 +435,7 @@
 				camera.updateProjectionMatrix();
 
 				resolution.set( window.innerWidth, window.innerHeight );
-				this.boids.forEach( function ( boid ) {
+				boids.forEach( function ( boid ) {
 					if( boid.trail_initialized ) boid.trail_material.uniforms.resolution.value.copy( resolution );
 				} );
 
@@ -443,8 +463,6 @@
 
 			function animate() {
 
-				requestAnimationFrame( animate );
-
 				controls.update();
 
 				for ( var i = 0, il = birds.length; i < il; i++ ) {
@@ -455,7 +473,7 @@
 					bird = birds[ i ];
 					bird.position.copy( boids[ i ].position );
 
-					color = bird.material.color;
+					const color = bird.material.color;
 //					color.r = color.g = color.b = ( 500 - bird.position.z ) / 1000;
 
 					if (boid.trail_initialized)
@@ -465,10 +483,16 @@
 					bird.rotation.z = Math.asin( boid.velocity.y / boid.velocity.length() );
 
 					bird.phase = ( bird.phase + ( Math.max( 0, bird.rotation.z ) + 0.1 )  ) % 62.83;
-					bird.geometry.vertices[ 5 ].y = bird.geometry.vertices[ 4 ].y = Math.sin( bird.phase ) * 5;
+					// bird.geometry.vertices[ 5 ].y = bird.geometry.vertices[ 4 ].y = Math.sin( bird.phase ) * 5;
+                    const val = Math.sin( bird.phase ) * 5
+                    bird.geometry.getAttribute('position').setY(4, val)
+					bird.geometry.getAttribute('position').setY(5, val)
+                    bird.geometry.getAttribute('position').needsUpdate = true
 				}
 
 				render();
+
+				requestAnimationFrame( animate );
 			}
 
 			function render() {
