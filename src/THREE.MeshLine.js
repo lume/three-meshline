@@ -14,24 +14,23 @@ import {
 	Vector2,
 } from 'three'
 
+const itemSize = 6
+
 export class MeshLine extends BufferGeometry {
 	isMeshLine = true
 	type = 'MeshLine'
 
-	positions = []
+	#positions = []
 
-	previous = []
-	next = []
-	side = []
-	width = []
-	indices_array = []
-	uvs = []
-	counters = []
+	#previous = []
+	#next = []
+	#side = []
+	#width = []
+	#indices_array = []
+	#uvs = []
+	#counters = []
 
 	widthCallback = null
-
-	// Used to raycast
-	matrixWorld = new Matrix4()
 
 	#attributes = null
 
@@ -48,10 +47,6 @@ export class MeshLine extends BufferGeometry {
 		this.setPoints(value, this.widthCallback)
 	}
 
-	setMatrixWorld(matrixWorld) {
-		this.matrixWorld = matrixWorld
-	}
-
 	setPoints(points, wcb) {
 		if (!(points instanceof Float32Array) && !(points instanceof Array)) {
 			console.error('ERROR: The BufferArray of points is not instancied correctly.')
@@ -61,8 +56,8 @@ export class MeshLine extends BufferGeometry {
 		// for later retreival when necessary (declaritive architectures)
 		this.#points = points
 		this.widthCallback = wcb
-		this.positions = []
-		this.counters = []
+		this.#positions = []
+		this.#counters = []
 		if (points.length && points[0] instanceof Vector3) {
 			// could transform Vector3 array into the array used below
 			// but this approach will only loop through the array once
@@ -70,130 +65,130 @@ export class MeshLine extends BufferGeometry {
 			for (let j = 0; j < points.length; j++) {
 				const p = points[j]
 				const c = j / points.length
-				this.positions.push(p.x, p.y, p.z)
-				this.positions.push(p.x, p.y, p.z)
-				this.counters.push(c)
-				this.counters.push(c)
+				this.#positions.push(p.x, p.y, p.z)
+				this.#positions.push(p.x, p.y, p.z)
+				this.#counters.push(c)
+				this.#counters.push(c)
 			}
 		} else {
 			for (let j = 0; j < points.length; j += 3) {
 				const c = j / points.length
-				this.positions.push(points[j], points[j + 1], points[j + 2])
-				this.positions.push(points[j], points[j + 1], points[j + 2])
-				this.counters.push(c)
-				this.counters.push(c)
+				this.#positions.push(points[j], points[j + 1], points[j + 2])
+				this.#positions.push(points[j], points[j + 1], points[j + 2])
+				this.#counters.push(c)
+				this.#counters.push(c)
 			}
 		}
-		this.process()
+		this.#process()
 	}
 
-	compareV3(a, b) {
-		const aa = a * 6
-		const ab = b * 6
+	#pointsAreEqual(pointIndexA, pointIndexB) {
+		const actualIndexA = pointIndexA * itemSize
+		const actualIndexB = pointIndexB * itemSize
 		return (
-			this.positions[aa] === this.positions[ab] &&
-			this.positions[aa + 1] === this.positions[ab + 1] &&
-			this.positions[aa + 2] === this.positions[ab + 2]
+			this.#positions[actualIndexA + 0] === this.#positions[actualIndexB + 0] &&
+			this.#positions[actualIndexA + 1] === this.#positions[actualIndexB + 1] &&
+			this.#positions[actualIndexA + 2] === this.#positions[actualIndexB + 2]
 		)
 	}
 
-	copyV3(a) {
-		const aa = a * 6
-		return [this.positions[aa], this.positions[aa + 1], this.positions[aa + 2]]
+	#clonePoint(pointIndex) {
+		const actualIndex = pointIndex * itemSize
+		return [this.#positions[actualIndex + 0], this.#positions[actualIndex + 1], this.#positions[actualIndex + 2]]
 	}
 
-	process() {
-		const l = this.positions.length / 6
+	#process() {
+		const pointCount = this.#positions.length / itemSize
 
-		this.previous = []
-		this.next = []
-		this.side = []
-		this.width = []
-		this.indices_array = []
-		this.uvs = []
+		this.#previous = []
+		this.#next = []
+		this.#side = []
+		this.#width = []
+		this.#indices_array = []
+		this.#uvs = []
 
-		let w
+		let width
+		let point
 
-		let v
 		// initial previous points
-		if (this.compareV3(0, l - 1)) {
-			v = this.copyV3(l - 2)
+		if (this.#pointsAreEqual(0, pointCount - 1)) {
+			point = this.#clonePoint(pointCount - 2)
 		} else {
-			v = this.copyV3(0)
+			point = this.#clonePoint(0)
 		}
-		this.previous.push(v[0], v[1], v[2])
-		this.previous.push(v[0], v[1], v[2])
+		this.#previous.push(point[0], point[1], point[2])
+		this.#previous.push(point[0], point[1], point[2])
 
-		for (let j = 0; j < l; j++) {
+		for (let j = 0; j < pointCount; j++) {
 			// sides
-			this.side.push(1)
-			this.side.push(-1)
+			this.#side.push(1)
+			this.#side.push(-1)
 
 			// widths
-			if (this.widthCallback) w = this.widthCallback(j / (l - 1))
-			else w = 1
-			this.width.push(w)
-			this.width.push(w)
+			if (this.widthCallback) width = this.widthCallback(j / (pointCount - 1))
+			else width = 1
+			this.#width.push(width)
+			this.#width.push(width)
 
 			// uvs
-			this.uvs.push(j / (l - 1), 0)
-			this.uvs.push(j / (l - 1), 1)
+			this.#uvs.push(j / (pointCount - 1), 0)
+			this.#uvs.push(j / (pointCount - 1), 1)
 
-			if (j < l - 1) {
+			if (j < pointCount - 1) {
 				// points previous to poisitions
-				v = this.copyV3(j)
-				this.previous.push(v[0], v[1], v[2])
-				this.previous.push(v[0], v[1], v[2])
+				point = this.#clonePoint(j)
+				this.#previous.push(point[0], point[1], point[2])
+				this.#previous.push(point[0], point[1], point[2])
 
 				// indices
 				const n = j * 2
-				this.indices_array.push(n, n + 1, n + 2)
-				this.indices_array.push(n + 2, n + 1, n + 3)
+				this.#indices_array.push(n, n + 1, n + 2)
+				this.#indices_array.push(n + 2, n + 1, n + 3)
 			}
 			if (j > 0) {
 				// points after poisitions
-				v = this.copyV3(j)
-				this.next.push(v[0], v[1], v[2])
-				this.next.push(v[0], v[1], v[2])
+				point = this.#clonePoint(j)
+				this.#next.push(point[0], point[1], point[2])
+				this.#next.push(point[0], point[1], point[2])
 			}
 		}
 
 		// last next point
-		if (this.compareV3(l - 1, 0)) {
-			v = this.copyV3(1)
+		if (this.#pointsAreEqual(pointCount - 1, 0)) {
+			point = this.#clonePoint(1)
 		} else {
-			v = this.copyV3(l - 1)
+			point = this.#clonePoint(pointCount - 1)
 		}
-		this.next.push(v[0], v[1], v[2])
-		this.next.push(v[0], v[1], v[2])
+		this.#next.push(point[0], point[1], point[2])
+		this.#next.push(point[0], point[1], point[2])
 
 		// redefining the attribute seems to prevent range errors
 		// if the user sets a differing number of vertices
-		if (!this.#attributes || this.#attributes.position.count * 3 !== this.positions.length) {
+		if (!this.#attributes || this.#attributes.position.count * 3 !== this.#positions.length) {
 			this.#attributes = {
-				position: new BufferAttribute(new Float32Array(this.positions), 3),
-				previous: new BufferAttribute(new Float32Array(this.previous), 3),
-				next: new BufferAttribute(new Float32Array(this.next), 3),
-				side: new BufferAttribute(new Float32Array(this.side), 1),
-				width: new BufferAttribute(new Float32Array(this.width), 1),
-				uv: new BufferAttribute(new Float32Array(this.uvs), 2),
-				index: new BufferAttribute(new Uint16Array(this.indices_array), 1),
-				counters: new BufferAttribute(new Float32Array(this.counters), 1),
+				position: new BufferAttribute(new Float32Array(this.#positions), 3),
+				previous: new BufferAttribute(new Float32Array(this.#previous), 3),
+				next: new BufferAttribute(new Float32Array(this.#next), 3),
+				side: new BufferAttribute(new Float32Array(this.#side), 1),
+				width: new BufferAttribute(new Float32Array(this.#width), 1),
+				uv: new BufferAttribute(new Float32Array(this.#uvs), 2),
+				index: new BufferAttribute(new Uint16Array(this.#indices_array), 1),
+				counters: new BufferAttribute(new Float32Array(this.#counters), 1),
 			}
 		} else {
-			this.#attributes.position.copyArray(this.positions)
+			this.#attributes.position.copyArray(this.#positions)
 			this.#attributes.position.needsUpdate = true
-			this.#attributes.previous.copyArray(this.previous)
+			this.#attributes.previous.copyArray(this.#previous)
 			this.#attributes.previous.needsUpdate = true
-			this.#attributes.next.copyArray(this.next)
+			this.#attributes.next.copyArray(this.#next)
 			this.#attributes.next.needsUpdate = true
-			this.#attributes.side.copyArray(this.side)
+			this.#attributes.side.copyArray(this.#side)
 			this.#attributes.side.needsUpdate = true
-			this.#attributes.width.copyArray(this.width)
+			this.#attributes.width.copyArray(this.#width)
 			this.#attributes.width.needsUpdate = true
-			this.#attributes.uv.copyArray(this.uvs)
+			this.#attributes.uv.copyArray(this.#uvs)
 			this.#attributes.uv.needsUpdate = true
-			this.#attributes.index.copyArray(this.indices_array)
+			this.#attributes.index.copyArray(this.#indices_array)
 			this.#attributes.index.needsUpdate = true
 		}
 
@@ -213,7 +208,6 @@ export class MeshLine extends BufferGeometry {
 
 	/**
 	 * Fast method to advance the line by one position.  The oldest position is removed.
-	 * @param position
 	 */
 	advance(position) {
 		const positions = this.#attributes.position.array
@@ -225,7 +219,7 @@ export class MeshLine extends BufferGeometry {
 		memcpy(positions, 0, previous, 0, l)
 
 		// POSITIONS
-		memcpy(positions, 6, positions, 0, l - 6)
+		memcpy(positions, itemSize, positions, 0, l - itemSize)
 
 		positions[l - 6] = position.x
 		positions[l - 5] = position.y
@@ -235,7 +229,7 @@ export class MeshLine extends BufferGeometry {
 		positions[l - 1] = position.z
 
 		// NEXT
-		memcpy(positions, 6, next, 0, l - 6)
+		memcpy(positions, itemSize, next, 0, l - itemSize)
 
 		next[l - 6] = position.x
 		next[l - 5] = position.y
@@ -250,29 +244,29 @@ export class MeshLine extends BufferGeometry {
 	}
 }
 
-export function MeshLineRaycast(meshline, raycaster, intersects) {
+export function MeshLineRaycast(mesh, raycaster, intersects) {
 	const inverseMatrix = new Matrix4()
 	const ray = new Ray()
 	const sphere = new Sphere()
 	const interRay = new Vector3()
-	const geometry = meshline.geometry
+	const geometry = mesh.geometry
 	// Checking boundingSphere distance to ray
 
 	if (!geometry.boundingSphere) geometry.computeBoundingSphere()
 	sphere.copy(geometry.boundingSphere)
-	sphere.applyMatrix4(meshline.matrixWorld)
+	sphere.applyMatrix4(mesh.matrixWorld)
 
 	if (raycaster.ray.intersectSphere(sphere, interRay) === false) {
 		return
 	}
 
-	inverseMatrix.copy(meshline.matrixWorld).invert()
+	inverseMatrix.copy(mesh.matrixWorld).invert()
 	ray.copy(raycaster.ray).applyMatrix4(inverseMatrix)
 
 	const vStart = new Vector3()
 	const vEnd = new Vector3()
 	const interSegment = new Vector3()
-	const step = meshline instanceof LineSegments ? 2 : 1
+	const step = mesh instanceof LineSegments ? 2 : 1
 	const index = geometry.index
 	const attributes = geometry.attributes
 
@@ -288,14 +282,14 @@ export function MeshLineRaycast(meshline, raycaster, intersects) {
 			vStart.fromArray(positions, a * 3)
 			vEnd.fromArray(positions, b * 3)
 			const width = widths[Math.floor(i / 3)] !== undefined ? widths[Math.floor(i / 3)] : 1
-			const precision = raycaster.params.Line.threshold + (meshline.material.lineWidth * width) / 2
+			const precision = raycaster.params.Line.threshold + (mesh.material.lineWidth * width) / 2
 			const precisionSq = precision * precision
 
 			const distSq = ray.distanceSqToSegment(vStart, vEnd, interRay, interSegment)
 
 			if (distSq > precisionSq) continue
 
-			interRay.applyMatrix4(meshline.matrixWorld) //Move back to world space for distance calculation
+			interRay.applyMatrix4(mesh.matrixWorld) //Move back to world space for distance calculation
 
 			const distance = raycaster.ray.origin.distanceTo(interRay)
 
@@ -305,11 +299,11 @@ export function MeshLineRaycast(meshline, raycaster, intersects) {
 				distance: distance,
 				// What do we want? intersection point on the ray or on the segment??
 				// point: raycaster.ray.at( distance ),
-				point: interSegment.clone().applyMatrix4(meshline.matrixWorld),
+				point: interSegment.clone().applyMatrix4(mesh.matrixWorld),
 				index: i,
 				face: null,
 				faceIndex: null,
-				object: meshline,
+				object: mesh,
 			})
 			// make event only fire once
 			i = l
