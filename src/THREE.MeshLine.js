@@ -169,7 +169,7 @@ export class MeshLine extends BufferGeometry {
 
 		// redefining the attribute seems to prevent range errors
 		// if the user sets a differing number of vertices
-		if (!this.#attributes || this.#attributes.position.count !== this.positions.length) {
+		if (!this.#attributes || this.#attributes.position.count * 3 !== this.positions.length) {
 			this.#attributes = {
 				position: new BufferAttribute(new Float32Array(this.positions), 3),
 				previous: new BufferAttribute(new Float32Array(this.previous), 3),
