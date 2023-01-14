@@ -1,4 +1,8 @@
-'use strict'
+import * as THREE from 'three'
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
+import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader.js'
+import {mergeBufferGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
 
 var container = document.getElementById( 'container' );
 
@@ -11,8 +15,8 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setPixelRatio( window.devicePixelRatio );
 container.appendChild( renderer.domElement );
 
-var controls = new THREE.OrbitControls( camera, renderer.domElement );
-var clock = new THREE.Clock();
+var controls = new OrbitControls( camera, renderer.domElement );
+controls.enableDamping = true
 
 var colors = [
 	0xed6a5a,
@@ -43,8 +47,8 @@ var material = new MeshLineMaterial( {
 	color: new THREE.Color( colors[ 3 ] ),
 	opacity: .5,
 	resolution: resolution,
-	sizeAttenuation: false,
-	lineWidth: 10,
+	sizeAttenuation: true,
+	lineWidth: 2,
 	depthWrite: false,
 	depthTest: false,
 	transparent: true
@@ -54,22 +58,6 @@ var loader = new THREE.TextureLoader();
 loader.load('assets/stroke.png', function(texture) {
 	material.map = texture;
 });
-
-function makeLine( geo ) {
-
-	var g = new MeshLine();
-	g.setGeometry( geo );
-
-	var mesh = new THREE.Mesh( g.geometry, material );
-	mesh.position.z += 500;
-	mesh.position.y += 300;
-	mesh.rotation.y = -Math.PI / 2;
-	mesh.rotation.z = Math.PI;
-	scene.add( mesh );
-
-	return mesh;
-
-}
 
 function init() {
 
@@ -81,7 +69,7 @@ function readModel() {
 
     return new Promise( function( resolve, reject ) {
 
-        var loader = new THREE.OBJLoader();
+        var loader = new OBJLoader();
         loader.load( 'assets/LeePerrySmith.obj', function( res ) {
             resolve( res );
         } )
@@ -92,20 +80,23 @@ function readModel() {
 
 function collectPoints( source ) {
 
-	var total = 0;
-	source.children.forEach( function( o ) {
-		total += o.geometry.attributes.position.count;
-	})
+	// var total = 0;
+	// source.children.forEach( function( o ) {
+	// 	total += o.geometry.attributes.position.count;
+	// })
 	var g = new THREE.BufferGeometry();
-	g.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array( total * 3 ), 3 ) );
+	// g.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array( total * 3 ), 3 ) );
 
-	var offset = 0;
+	// var offset = 0;
+    const geometries = []
 	source.children.forEach( function( o ) {
-		g.merge( o.geometry, offset );
-		offset += o.geometry.attributes.position.count;
+		// g.merge( o.geometry, offset );
+		// offset += o.geometry.attributes.position.count;
+        geometries.push(o.geometry)
 	})
+    g = mergeBufferGeometries(geometries);
 
-    g.center( g );
+    g.center();
     var scaleMatrix = new THREE.Matrix4();
     scaleMatrix.makeScale( 1000, 1000, 1000 );
     g.applyMatrix4( scaleMatrix );
@@ -139,8 +130,8 @@ function collectPoints( source ) {
     scene.remove( o );
 
     var l = new MeshLine();
-    l.setGeometry( points, function( p ) { return p } );
-    var line = new THREE.Mesh( l.geometry, material );
+    l.setPoints( points, function( p ) { return p } );
+    var line = new THREE.Mesh( l, material );
     scene.add( line );
 
     document.querySelector( '#title p' ).style.display = 'none';

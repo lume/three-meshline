@@ -1,4 +1,6 @@
-THREE.ConstantSpline = function() {
+import * as THREE from 'three'
+
+export const ConstantSpline = function() {
 
 	this.p0 = new THREE.Vector3();
 	this.p1 = new THREE.Vector3();
@@ -20,7 +22,7 @@ THREE.ConstantSpline = function() {
 
 };
 
-THREE.ConstantSpline.prototype.calculate = function() {
+ConstantSpline.prototype.calculate = function() {
 
 	this.d = 0;
 	this.points = [];
@@ -63,7 +65,7 @@ THREE.ConstantSpline.prototype.calculate = function() {
 
 };
 
-THREE.ConstantSpline.prototype.calculateDistances = function() {
+ConstantSpline.prototype.calculateDistances = function() {
 
 	this.steps = [];
 	this.d = 0;
@@ -88,7 +90,7 @@ THREE.ConstantSpline.prototype.calculateDistances = function() {
 
 }
 
-THREE.ConstantSpline.prototype.reticulate = function( settings ) {
+ConstantSpline.prototype.reticulate = function( settings ) {
 
 	if( this.distancesNeedUpdate ) {
 		this.calculateDistances();

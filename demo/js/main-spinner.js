@@ -1,4 +1,6 @@
-'use strict'
+import * as THREE from 'three'
+import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+import {Maf} from './Maf.js'
 
 var container = document.getElementById( 'container' );
 
@@ -41,7 +43,6 @@ loader.load( 'assets/stroke.png', function( texture ) {
 var resolution = new THREE.Vector2( window.innerWidth, window.innerHeight );
 
 var resolution = new THREE.Vector2( window.innerWidth, window.innerHeight );
-var geo = [];
 
 var raycaster = new THREE.Raycaster();
 var mouse = {};
@@ -50,7 +51,6 @@ var tmpVector = new THREE.Vector2();
 var angle = 0;
 var meshes = {}, plane;
 var material;
-var center = new THREE.Vector2( .5, .5 );
 
 function prepareMesh() {
 
@@ -60,7 +60,7 @@ function prepareMesh() {
 	}
 
 	var g = new MeshLine();
-	g.setGeometry( geo, function( p ) { return p; } );
+	g.setPoints( geo, p => p );
 
 	material = new MeshLineMaterial( {
 		useMap: true,
@@ -76,7 +76,7 @@ function prepareMesh() {
 		repeat: new THREE.Vector2( 1,2 )
 	});
 
-	var mesh = new THREE.Mesh( g.geometry, material );
+	var mesh = new THREE.Mesh( g, material );
 	mesh.geo = geo;
 	mesh.g = g;
 
@@ -88,7 +88,7 @@ function prepareMesh() {
 
 function init() {
 
-	plane = new THREE.Mesh( new THREE.PlaneBufferGeometry( 1000, 1000 ), new THREE.MeshNormalMaterial( { side: THREE.DoubleSide,  } ) );
+	plane = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), new THREE.MeshNormalMaterial( { side: THREE.DoubleSide,  } ) );
 	plane.material.visible = false;
 	scene.add( plane );
 
@@ -181,8 +181,6 @@ function onMouseMove ( e ) {
 		nMouse[ 0 ].x = ( e.clientX / renderer.domElement.clientWidth ) * 2 - 1;
 		nMouse[ 0 ].y = - ( e.clientY / renderer.domElement.clientHeight ) * 2 + 1;
 
-		//checkIntersection( 0 );
-
 	}
 
 	e.preventDefault();
@@ -194,7 +192,6 @@ function onTouchMove ( e ) {
 	for( var j = 0; j < e.changedTouches.length; j++ ) {
 		nMouse[ e.changedTouches[ j ].identifier ].x = ( e.changedTouches[ j ].clientX / renderer.domElement.clientWidth ) * 2 - 1;
 		nMouse[ e.changedTouches[ j ].identifier ].y = - ( e.changedTouches[ j ].clientY / renderer.domElement.clientHeight ) * 2 + 1;
-		//checkIntersection( e.changedTouches[ j ].identifier );
 	}
 
 	e.preventDefault();
@@ -233,7 +230,7 @@ function checkIntersection( id ) {
 		geo[ geo.length - 2 ] = intersects[ 0 ].point.y;
 		geo[ geo.length - 1 ] = d * Math.sin( angle );
 
-		g.setGeometry( geo );
+		g.setPoints( geo );
 
 	}
 
@@ -253,8 +250,6 @@ function onWindowResize() {
 
 }
 
-var tmpVector = new THREE.Vector3();
-
 function check() {
 
 	for( var i in nMouse ) { checkIntersection( i ); }
@@ -273,16 +268,6 @@ function render() {
       var mesh = meshes[ i ];
       mesh.rotation.y = angle;
     }
-
-	/*for( var i in meshes ) {
-		var geo = meshes[ i ].geo;
-		for( var j = 0; j < geo.length; j+= 3 ) {
-			geo[ j ] *= 1.01;
-			geo[ j + 1 ] *= 1.01;
-			geo[ j + 2 ] *= 1.01;
-		}
-		meshes[ i ].g.setGeometry( geo );
-	}*/
 
 	renderer.render( scene, camera );
 

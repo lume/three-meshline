@@ -1,17 +1,22 @@
-'use strict'
+import * as THREE from 'three'
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
+import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+import {ConstantSpline} from "./THREE.ConstantSpline.js";
+import {Maf} from './Maf.js'
 
 var container = document.getElementById( 'container' );
 
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, .1, 1000 );
-camera.position.set( 0, 0, -10 );
+camera.position.set( 0, 0, -150 );
 
 var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setPixelRatio( window.devicePixelRatio );
 container.appendChild( renderer.domElement );
 
-var controls = new THREE.OrbitControls( camera, renderer.domElement );
+var controls = new OrbitControls( camera, renderer.domElement );
+controls.enableDamping = true
 var clock = new THREE.Clock();
 
 var lines = [];
@@ -19,16 +24,16 @@ var resolution = new THREE.Vector2( window.innerWidth, window.innerHeight );
 var strokeTexture;
 
 var Params = function() {
-	this.curves = true;
-	this.circles = false;
-	this.amount = 100;
-	this.lineWidth = 10;
-	this.dashArray = 0.6;
+	this.curves = false;
+	this.circles = true;
+	this.amount = 30;
+	this.lineWidth = 2;
+	this.dashArray = 0;
 	this.dashOffset = 0;
 	this.dashRatio = 0.5;
-	this.taper = 'parabolic';
+	this.taper = 'none';
 	this.strokes = false;
-	this.sizeAttenuation = false;
+	this.sizeAttenuation = true;
 	this.animateWidth = false;
 	this.spread = false;
 	this.autoRotate = true;
@@ -57,7 +62,7 @@ window.addEventListener( 'load', function() {
 	gui.add( params, 'circles' ).onChange( update );
 	gui.add( params, 'amount', 1, 1000 ).onChange( update );
 	gui.add( params, 'lineWidth', 1, 20 ).onChange( update );
-	gui.add( params, 'dashArray', 0, 3 ).onChange( update );
+	gui.add( params, 'dashArray', 0, 1 ).onChange( update );
 	gui.add( params, 'dashRatio', 0, 1 ).onChange( update );
 	gui.add( params, 'taper', [ 'none', 'linear', 'parabolic', 'wavy' ] ).onChange( update );
 	gui.add( params, 'strokes' ).onChange( update );
@@ -79,20 +84,19 @@ window.addEventListener( 'load', function() {
 } );
 
 var TAU = 2 * Math.PI;
-var hexagonGeometry = new THREE.Geometry();
+var hexagonGeometry = [];
 for( var j = 0; j < TAU - .1; j += TAU / 100 ) {
 	var v = new THREE.Vector3();
 	v.set( Math.cos( j ), Math.sin( j ), 0 );
-	hexagonGeometry.vertices.push( v );
+	hexagonGeometry.push( v );
 }
-hexagonGeometry.vertices.push( hexagonGeometry.vertices[ 0 ].clone() );
+hexagonGeometry.push( hexagonGeometry[ 0 ].clone() );
 
 function createCurve() {
 
-	var s = new THREE.ConstantSpline();
+	var s = new ConstantSpline();
 	var rMin = 5;
 	var rMax = 10;
-	var origin = new THREE.Vector3( Maf.randomInRange( -rMin, rMin ), Maf.randomInRange( -rMin, rMin ), Maf.randomInRange( -rMin, rMin ) );
 
 	s.inc = .001;
 	s.p0 = new THREE.Vector3( .5 - Math.random(), .5 - Math.random(), .5 - Math.random() );
@@ -106,14 +110,13 @@ function createCurve() {
 	s.p3.multiplyScalar( rMin + Math.random() * rMax );
 
 	s.calculate();
-	var geometry = new THREE.Geometry();
 	s.calculateDistances();
 	//s.reticulate( { distancePerStep: .1 });
 	s.reticulate( { steps: 500 } );
- 	var geometry = new THREE.Geometry();
+ 	var geometry = [];
 
 	for( var j = 0; j < s.lPoints.length - 1; j++ ) {
-		geometry.vertices.push( s.lPoints[ j ].clone() );
+		geometry.push( s.lPoints[ j ].clone() );
 	}
 
 	return geometry;
@@ -152,10 +155,10 @@ function makeLine( geo ) {
 	var g = new MeshLine();
 
 	switch( params.taper ) {
-		case 'none': g.setGeometry( geo ); break;
-		case 'linear': g.setGeometry( geo, function( p ) { return 1 - p; } ); break;
-		case 'parabolic': g.setGeometry( geo, function( p ) { return 1 * Maf.parabola( p, 1 )} ); break;
-		case 'wavy': g.setGeometry( geo, function( p ) { return 2 + Math.sin( 50 * p ) } ); break;
+		case 'none': g.setPoints( geo ); break;
+		case 'linear': g.setPoints( geo, function( p ) { return 1 - p; } ); break;
+		case 'parabolic': g.setPoints( geo, function( p ) { return 1 * Maf.parabola( p, 1 )} ); break;
+		case 'wavy': g.setPoints( geo, function( p ) { return 2 + Math.sin( 50 * p ) } ); break;
 	}
 
 	var material = new MeshLineMaterial( {
@@ -175,7 +178,7 @@ function makeLine( geo ) {
 		transparent: true,
 		side: THREE.DoubleSide
 	});
-	var mesh = new THREE.Mesh( g.geometry, material );
+	var mesh = new THREE.Mesh( g, material );
 	if( params.spread || params.circles ) {
 		var r = 50;
 		mesh.position.set( Maf.randomInRange( -r, r ), Maf.randomInRange( -r, r ), Maf.randomInRange( -r, r ) );
@@ -200,8 +203,10 @@ function init() {
 function createLine() {
 	if( params.circles ) makeLine( hexagonGeometry );
 	if( params.curves ) makeLine( createCurve() );
-	//makeLine( makeVerticalLine() );
-	//makeLine( makeSquare() );
+
+    // uncomment to see
+	// makeLine( makeVerticalLine() );
+	// makeLine( makeSquare() );
 }
 
 function createLines() {
@@ -211,21 +216,20 @@ function createLines() {
 }
 
 function makeVerticalLine() {
-	var g = new THREE.Geometry()
+	var g = []
 	var x = ( .5 - Math.random() ) * 100;
-	g.vertices.push( new THREE.Vector3( x, -10, 0 ) );
-	g.vertices.push( new THREE.Vector3( x, 10, 0 ) );
+	g.push( new THREE.Vector3( x, -10, 0 ) );
+	g.push( new THREE.Vector3( x, 10, 0 ) );
 	return g;
 }
 
 function makeSquare() {
-	var g = new THREE.Geometry()
-	var x = ( .5 - Math.random() ) * 100;
-	g.vertices.push( new THREE.Vector3( -1, -1, 0 ) );
-	g.vertices.push( new THREE.Vector3( 1, -1, 0 ) );
-	g.vertices.push( new THREE.Vector3( 1, 1, 0 ) );
-	g.vertices.push( new THREE.Vector3( -1, 1, 0 ) );
-	g.vertices.push( new THREE.Vector3( -1, -1, 0 ) );
+	var g = []
+	g.push( new THREE.Vector3( -1, -1, 0 ) );
+	g.push( new THREE.Vector3( 1, -1, 0 ) );
+	g.push( new THREE.Vector3( 1, 1, 0 ) );
+	g.push( new THREE.Vector3( -1, 1, 0 ) );
+	g.push( new THREE.Vector3( -1, -1, 0 ) );
 	return g;
 }
 
@@ -244,8 +248,6 @@ function onWindowResize() {
 }
 
 window.addEventListener( 'resize', onWindowResize );
-
-var tmpVector = new THREE.Vector3();
 
 function render(time) {
 

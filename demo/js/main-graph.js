@@ -46,7 +46,6 @@ render();
 function makeLine( geo, c ) {
 
 	var g = new MeshLine();
-	// g.setGeometry( geo );
 	g.setPoints( geo );
 
 	var material = new MeshLineMaterial( {

@@ -1,4 +1,6 @@
-'use strict'
+import * as THREE from 'three'
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
+import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
 
 var container = document.getElementById( 'container' );
 
@@ -11,8 +13,8 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setPixelRatio( window.devicePixelRatio );
 container.appendChild( renderer.domElement );
 
-var controls = new THREE.OrbitControls( camera, renderer.domElement );
-var clock = new THREE.Clock();
+var controls = new OrbitControls( camera, renderer.domElement );
+controls.enableDamping = true;
 
 var colors = [
 	0xed6a5a,
@@ -61,9 +63,9 @@ loader.load('assets/stroke.png', function(texture) {
 function makeLine( geo ) {
 
 	var g = new MeshLine();
-	g.setGeometry( geo );
+	g.setPoints( geo );
 
-	var mesh = new THREE.Mesh( g.geometry, material );
+	var mesh = new THREE.Mesh( g, material );
 	mesh.position.z += 500;
 	mesh.position.y += 300;
 	mesh.rotation.y = -Math.PI / 2;
@@ -104,8 +106,7 @@ function drawSVG( source ) {
 
     	if( p instanceof SVGPathElement && p.pathSegList ) {
 
-    		var line = new THREE.Geometry();
-    		var vertices = line.vertices;
+    		var line = [];
     		var x, y;
     		var ox, oy;
     		var px, py;
@@ -133,46 +134,46 @@ function drawSVG( source ) {
                     oy = y;
                     // add line;
     				lines.push( line );
-    				line = new THREE.Geometry();
-                    line.vertices.push( new THREE.Vector3( x, y, 0 ) );
+    				line = [];
+                    line.push( new THREE.Vector3( x, y, 0 ) );
                 }
                 if( segment instanceof SVGPathSegLinetoRel ) {
                     x = px + segment.x;
                     y = py + segment.y;
-                    line.vertices.push( new THREE.Vector3( x, y, 0 ) );
+                    line.push( new THREE.Vector3( x, y, 0 ) );
                 }
                 if( segment instanceof SVGPathSegLinetoAbs ) {
                     x = segment.x;
                     y = segment.y;
-                    line.vertices.push( new THREE.Vector3( x, y, 0 ) );
+                    line.push( new THREE.Vector3( x, y, 0 ) );
                 }
                 if( segment instanceof SVGPathSegLinetoVerticalRel ) {
                     x = px;
                     y = py + segment.y;
-                    line.vertices.push( new THREE.Vector3( x, y, 0 ) );
+                    line.push( new THREE.Vector3( x, y, 0 ) );
                 }
                 if( segment instanceof SVGPathSegLinetoHorizontalRel ) {
                     x = px + segment.x;
                     y = py;
-                    line.vertices.push( new THREE.Vector3( x, y, 0 ) );
+                    line.push( new THREE.Vector3( x, y, 0 ) );
                 }
                 if( segment instanceof SVGPathSegLinetoHorizontalAbs ) {
                     x = segment.x;
                     y = py;
-                    line.vertices.push( new THREE.Vector3( x, y, 0 ) );
+                    line.push( new THREE.Vector3( x, y, 0 ) );
                 }
                 if( segment instanceof SVGPathSegLinetoVerticalAbs ) {
                     x = px;
                     y = segment.y;
-                    line.vertices.push( new THREE.Vector3( x, y, 0 ) );
+                    line.push( new THREE.Vector3( x, y, 0 ) );
                 }
                 if( segment instanceof SVGPathSegClosePath ) {
                     x = ox;
                     y = oy;
-                    line.vertices.push( new THREE.Vector3( x, y, 0 ) );
+                    line.push( new THREE.Vector3( x, y, 0 ) );
                     // add line
     				lines.push( line );
-    				line = new THREE.Geometry();
+    				line = [];
                 }
 
                 px = x;
