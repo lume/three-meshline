@@ -181,19 +181,19 @@ export class MeshLine extends BufferGeometry {
 				counters: new BufferAttribute(new Float32Array(this.counters), 1),
 			}
 		} else {
-			this.#attributes.position.copyArray(new Float32Array(this.positions))
+			this.#attributes.position.copyArray(this.positions)
 			this.#attributes.position.needsUpdate = true
-			this.#attributes.previous.copyArray(new Float32Array(this.previous))
+			this.#attributes.previous.copyArray(this.previous)
 			this.#attributes.previous.needsUpdate = true
-			this.#attributes.next.copyArray(new Float32Array(this.next))
+			this.#attributes.next.copyArray(this.next)
 			this.#attributes.next.needsUpdate = true
-			this.#attributes.side.copyArray(new Float32Array(this.side))
+			this.#attributes.side.copyArray(this.side)
 			this.#attributes.side.needsUpdate = true
-			this.#attributes.width.copyArray(new Float32Array(this.width))
+			this.#attributes.width.copyArray(this.width)
 			this.#attributes.width.needsUpdate = true
-			this.#attributes.uv.copyArray(new Float32Array(this.uvs))
+			this.#attributes.uv.copyArray(this.uvs)
 			this.#attributes.uv.needsUpdate = true
-			this.#attributes.index.copyArray(new Uint16Array(this.indices_array))
+			this.#attributes.index.copyArray(this.indices_array)
 			this.#attributes.index.needsUpdate = true
 		}
 
