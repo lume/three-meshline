@@ -1,40 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>THREE.MeshLine - SVG example</title>
-    <meta property="og:description" content="THREE.MeshLine - SVG example">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link rel="stylesheet" href="css/main.css">
-    <link href='https://fonts.googleapis.com/css?family=Lato:400,700,700italic,400italic,300,300italic' rel='stylesheet' type='text/css'>
-</head>
+	<head>
+		<meta charset="utf-8" />
+		<title>THREE.MeshLine - SVG example</title>
+		<meta property="og:description" content="THREE.MeshLine - SVG example" />
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+		<link rel="stylesheet" href="css/main.css" />
+		<link
+			href="https://fonts.googleapis.com/css?family=Lato:400,700,700italic,400italic,300,300italic"
+			rel="stylesheet"
+			type="text/css"
+		/>
+	</head>
 
-</script>
+	<body>
+		<div id="container"></div>
+		<div id="title">
+			<h1>THREE.MeshLine - SVG example</h1>
+			<p>Lines with sizeAttenuation disabled</p>
+		</div>
+	</body>
 
-<body>
-	<div id="container" ></div>
-	<div id="title">
-	    <h1>THREE.MeshLine - SVG example</h1>
-	    <p>Lines with sizeAttenuation disabled</p>
-	</div>
-</body>
+	<!-- Import maps polyfill -->
+	<!-- Remove this when import maps will be widely supported -->
+	<script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script>
 
-<!-- Import maps polyfill -->
-<!-- Remove this when import maps will be widely supported -->
-<script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+	<script type="importmap">
+		{
+			"imports": {
+				"three": "/node_modules/three/build/three.module.js",
+				"three/": "/node_modules/three/",
+				"@lume/three-meshline": "../src/THREE.MeshLine.js",
+				"@lume/three-meshline/": "../"
+			}
+		}
+	</script>
 
-<script type="importmap">
-    {
-        "imports": {
-            "three": "/node_modules/three/build/three.module.js",
-            "three/": "/node_modules/three/",
-            "@lume/three-meshline": "../src/THREE.MeshLine.js",
-            "@lume/three-meshline/": "../"
-        }
-    }
-</script>
-
-<script src="js/pathseg.js"></script>
-<script type="module" src="js/main-svg.js"></script>
-
+	<script src="js/pathseg.js"></script>
+	<script type="module" src="js/main-svg.js"></script>
 </html>

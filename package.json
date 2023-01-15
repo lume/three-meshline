@@ -25,6 +25,7 @@
 		"three": "*"
 	},
 	"devDependencies": {
+		"prettier": "^2.0.0",
 		"three": "^0.148.0",
 		"@types/three": "^0.148.0"
 	},
