@@ -74,17 +74,11 @@
 				this.initTrail = function () {
 					// Create the line mesh with all points set to the current bird
 
-					// FIXME initial positions not working with typed array
-					// const positions = new Float32Array(100 * 3)
-					// for (let i = 0; i < 100; i += 3) {
-					//     positions[i + 0] = this.position.x
-					//     positions[i + 1] = this.position.y
-					//     positions[i + 2] = this.position.z
-					// }
-					// FIXME initial positions works only with Vector3 array
-					const positions = []
-					for (let i = 0; i < 100; i += 1) {
-						positions.push(this.position.clone())
+					const positions = new Float32Array(100 * 3)
+					for (let i = 0; i < 100 * 3; i += 3) {
+						positions[i + 0] = this.position.x
+						positions[i + 1] = this.position.y
+						positions[i + 2] = this.position.z
 					}
 
 					this.trail_line = new MeshLineGeometry()
@@ -98,7 +92,7 @@
 						// blending: THREE.AdditiveBlending,
 						resolution: resolution,
 						sizeAttenuation: true,
-						lineWidth: 1,
+						lineWidth: 1 * devicePixelRatio,
 						depthTest: false,
 						side: THREE.DoubleSide,
 						fog: true,
