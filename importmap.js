@@ -1,4 +1,6 @@
-{
+;(function () {
+	let a = undefined
+
 	function loadImportmap() {
 		const src = document.currentScript.getAttribute('src')
 		const srcUrl = resolveUrl(src)
@@ -13,8 +15,6 @@
 		document.write(r.responseText)
 	}
 
-	let a
-
 	function resolveUrl(string) {
 		if (!a) a = document.createElement('a')
 		a.href = string
@@ -22,4 +22,4 @@
 	}
 
 	loadImportmap()
-}
+})()
