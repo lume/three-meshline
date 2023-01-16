@@ -1,6 +1,6 @@
 {
 	"name": "@lume/three-meshline",
-	"version": "4.0.0",
+	"version": "4.0.1",
 	"description": "Mesh-based replacement for THREE.Line",
 	"license": "MIT",
 	"homepage": "https://github.com/lume/three-meshline#readme",
