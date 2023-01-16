@@ -35,7 +35,7 @@ var material = new MeshLineMaterial({
 	opacity: 1,
 	resolution: resolution,
 	sizeAttenuation: false,
-	lineWidth: 1,
+	lineWidth: 2 * devicePixelRatio,
 	depthWrite: false,
 	depthTest: false,
 	transparent: true,

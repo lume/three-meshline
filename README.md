@@ -11,27 +11,38 @@ Provides a Mesh-based replacement for `THREE.Line` from
 
 Instead of using GL_LINE, it uses a strip of triangles billboarded. Some examples:
 
-<p align="center">
-  <a href="https://docs.lume.io/three-meshline/demo/"><img width="32%" src="screenshots/demo.jpg" alt="Demo"/></a>
-  <a href="https://docs.lume.io/three-meshline/demo/graph.html"><img width="32%" src="screenshots/graph.jpg" alt="Graph"/></a>
-  <a href="https://docs.lume.io/three-meshline/demo/spinner.html"><img width="32%" src="screenshots/spinner.jpg" alt="Spinner"/></a>
-  <a href="https://docs.lume.io/three-meshline/demo/svg.html"><img width="32%" src="screenshots/svg.jpg" alt="SVG"/></a>
-  <a href="https://docs.lume.io/three-meshline/demo/shape.html"><img width="32%" src="screenshots/shape.jpg" alt="Shape"/></a>
-  <a href="https://docs.lume.io/three-meshline/demo/birds.html"><img width="32%" src="screenshots/birds.jpg" alt="Birds"/></a>
-</p>
+# Demos
 
-- [Demo](https://docs.lume.io/three-meshline/demo/index.html): play with the
-  different settings of materials
-- [Graph](https://docs.lume.io/three-meshline/demo/graph.html): example of
-  using `MeshLine` to plot graphs
-- [Spinner](https://docs.lume.io/three-meshline/demo/spinner.html): example of
-  dynamic `MeshLine` with texture
-- [SVG](https://docs.lume.io/three-meshline/demo/svg.html): example of
-  `MeshLine` rendering SVG Paths
-- [Shape](https://docs.lume.io/three-meshline/demo/shape.html): example of
-  `MeshLine` created from a mesh
-- [Birds](https://docs.lume.io/three-meshline/demo/birds.html): example of
-  `MeshLine.advance()` by @caramelcode (Jared Sprague) and @mwcz (Michael Clayton)
+<table>
+    <tr>
+      <td align="center">
+        <a href="https://docs.lume.io/three-meshline/demo/"><img width="100%" src="screenshots/demo.jpg" alt="Demo"/></a><br />
+        <a href="https://docs.lume.io/three-meshline/demo">Play</a>: play with the different mesh line options
+      </td>
+      <td align="center">
+        <a href="https://docs.lume.io/three-meshline/demo/graph.html"><img width="100%" src="screenshots/graph.jpg" alt="Graph"/></a><br />
+        <a href="https://docs.lume.io/three-meshline/demo/graph.html">Graph</a>: example of using `MeshLine` to plot graphs
+      </td>
+      <td align="center">
+        <a href="https://docs.lume.io/three-meshline/demo/spinner.html"><img width="100%" src="screenshots/spinner.jpg" alt="Spinner"/></a><br />
+        <a href="https://docs.lume.io/three-meshline/demo/spinner.html">Spinner</a>: example of dynamic `MeshLine` with texture
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <a href="https://docs.lume.io/three-meshline/demo/svg.html"><img width="100%" src="screenshots/svg.jpg" alt="SVG"/></a><br />
+        <a href="https://docs.lume.io/three-meshline/demo/svg.html">SVG</a>: example of `MeshLine` rendering SVG Paths
+      </td>
+      <td align="center">
+        <a href="https://docs.lume.io/three-meshline/demo/shape.html"><img width="100%" src="screenshots/shape.jpg" alt="Shape"/></a><br />
+        <a href="https://docs.lume.io/three-meshline/demo/shape.html">Shape</a>: example of `MeshLine` created from an OBJ file
+      </td>
+      <td align="center">
+        <a href="https://docs.lume.io/three-meshline/demo/birds.html"><img width="100%" src="screenshots/birds.jpg" alt="Birds"/></a><br />
+        <a href="https://docs.lume.io/three-meshline/demo/birds.html">Birds</a>: example of `MeshLine.advance()` by @caramelcode (Jared Sprague) and @mwcz (Michael Clayton)
+      </td>
+    </tr>
+</table>
 
 # How to use
 
