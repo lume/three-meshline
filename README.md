@@ -65,7 +65,7 @@ importmap manually in your HTML like so:
 		"imports": {
 			"three": "/node_modules/three/build/three.module.js",
 			"three/": "/node_modules/three/",
-			"@lume/three-meshline": "/node_modules/@lume/three-meshline/src/THREE.MeshLine.js",
+			"@lume/three-meshline": "/node_modules/@lume/three-meshline/dist/index.js",
 			"@lume/three-meshline/": "/node_modules/@lume/three-meshline/"
 		}
 	}
@@ -124,35 +124,42 @@ By default it's a white material of width 1 unit.
 
 `MeshLineMaterial` accepts `options` to control the appereance of the `MeshLine`:
 
-- `map` - a `THREE.Texture` to paint along the line (requires `useMap` set to
-  true) (default: `null`)
-- `useMap` - tells the material to use `map` (0 - solid color, 1 use texture)
-  (default: `0`)
-- `alphaMap` - a `THREE.Texture` to use as alpha along the line (requires
-  `useAlphaMap` set to true) (default: 'null')
-- `useAlphaMap` - tells the material to use `alphaMap` (0 - no alpha, 1 modulate
-  alpha) (default: `0`)
-- `repeat` - `THREE.Vector2` to define the texture tiling (applies to map and
-  alphaMap) (default: `new Vector2(1, 1)`)
-- `color` - `THREE.Color` to paint the line width, or tint the texture with
-  (default: `new Color(0xffffff)`)
-- `opacity` - alpha value from 0 to 1 (requires `transparent` set to `true`) (default: `1`)
-- `alphaTest` - cutoff value from 0 to 1 (default: `0`)
-- `dashArray` - the length and space between dashes. (0 - no dash) (default: `0`)
-- `dashOffset` - defines the location where the dash will begin. Ideal to
-  animate the line. (default: `0`)
-- `dashRatio` - defines the ratio between that is visible or not (0 - more
-  visible, 1 - more invisible) (default: `0.5`)
 - `resolution` - `THREE.Vector2` specifying the canvas size (REQUIRED) (default:
   `new Vector2(1, 1)`)
+- `map` - a `THREE.Texture` to paint along the line (requires `useMap` set to
+  true) (default: `null`)
+- `useMap` - tells the material to use `map` (`false` - solid color, `true` use
+  texture) (default `false`)
+- `alphaMap` - a `THREE.Texture` to use as alpha along the line (requires
+  `useAlphaMap` set to true) (default: 'null')
+- `useAlphaMap` - tells the material to use `alphaMap` (`false` - no alpha,
+  `true` alpha from texture) (default: `false`)
+- `repeat` - `THREE.Vector2` to define the texture tiling (applies to `map` and
+  `alphaMap`) (default: `new Vector2(1, 1)`)
+- `color` - `THREE.Color` to paint the line width, or tint the texture with
+  (default: `new Color('white')`)
+- `opacity` - alpha value from `0` to `1` (requires `transparent` set to `true`)
+  (default: `1`)
+- `alphaTest` - cutoff value from `0` to `1` (default: `0`)
+- `dashArray` - the length and space between dashes. (`0` - no dash) (default: `0`)
+- `dashOffset` - defines the location where the dash will begin. Ideal to
+  animate the line. (default: `0`)
+- `dashRatio` - defines the ratio between that is visible or not (`0` - more
+  visible, `1` - more invisible) (default: `0.5`)
+- `useDash` - whether to use dashes or not. Setting `dashArray` to a
+  non-zero value automatically sets this to `true`. (`false` - no dashes, `true`
+  - dashes) (default: `true`)
 - `sizeAttenuation` - makes the line width constant regardless distance (1 unit
-  is 1px on screen) (0 - attenuate, 1 - don't attenuate) (default: `1`)
-- `lineWidth` - float defining width (if `sizeAttenuation` is true, it's world
-  units; else is screen pixels) (default: `1`)
+  is 1px on screen) (`false` - attenuate, `true` - don't attenuate) (default: `true`)
+- `lineWidth` - width of the line (if `sizeAttenuation` is `true`, the value is
+  in world units; othwerwise it is in screen pixels) (default: `1`)
+- `visibility` - A number from `0` to `1` denoting the portion of the line that
+  is visible, starting from the end (`0.5` means half of the line is visible, `0`
+  means the whole line is invisible) (default: `1`)
 
-If you're rendering transparent lines or using a texture with alpha map, you
-should set `depthTest` to `false`, `transparent` to `true` and `blending` to an
-appropriate blending mode, or use `alphaTest`.
+If you're rendering transparent lines or using a texture with alpha map, you may
+consider setting `depthTest` to `false`, `transparent` to `true` and `blending`
+to an appropriate blending mode, or use `alphaTest`.
 
 ##### Use MeshLine and MeshLineMaterial to create a THREE.Mesh
 
@@ -167,6 +174,8 @@ You can optionally add raycast support with the following.
 
 ```js
 mesh.raycast = MeshLineRaycast.bind(null, mesh)
+const raycaster = new THREE.Raycaster()
+// ... use raycaster as usual ...
 ```
 
 ### Declarative use

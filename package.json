@@ -2,16 +2,13 @@
 	"name": "@lume/three-meshline",
 	"version": "3.0.0",
 	"description": "Mesh-based replacement for THREE.Line",
-	"main": "src/THREE.MeshLine.js",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/lume/three-meshline.git"
-	},
 	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/lume/three-meshline/issues"
-	},
 	"homepage": "https://github.com/lume/three-meshline#readme",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": "./dist/index.js"
+	},
 	"files": [
 		"LICENSE",
 		"History.md",
@@ -25,9 +22,18 @@
 		"three": "*"
 	},
 	"devDependencies": {
+		"@lume/cli": "^0.9.3",
+		"@types/three": "^0.148.0",
 		"prettier": "^2.0.0",
 		"three": "^0.148.0",
-		"@types/three": "^0.148.0"
+		"typescript": "^4.6.3"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/lume/three-meshline.git"
+	},
+	"bugs": {
+		"url": "https://github.com/lume/three-meshline/issues"
 	},
 	"keywords": [
 		"lines",

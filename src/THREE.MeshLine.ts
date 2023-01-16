@@ -14,32 +14,70 @@ import {
 	Vector2,
 } from 'three'
 
+import type {
+	Mesh,
+	Raycaster,
+	Intersection,
+	Texture,
+	ShaderMaterialParameters,
+	IUniform,
+	Float32BufferAttribute,
+	Uint16BufferAttribute,
+} from 'three'
+
 const itemSize = 6
 
 export class MeshLine extends BufferGeometry {
-	isMeshLine = true
-	type = 'MeshLine'
+	readonly isMeshLine = true
+	override readonly type = 'MeshLine'
 
-	#positions = []
+	#positions: number[] = []
 
-	#previous = []
-	#next = []
-	#side = []
-	#width = []
-	#indices_array = []
-	#uvs = []
-	#counters = []
+	#previous: number[] = []
+	#next: number[] = []
+	#side: number[] = []
+	#width: number[] = []
+	#indices_array: number[] = []
+	#uvs: number[] = []
+	#counters: number[] = []
 
-	widthCallback = null
+	/**
+	 * A callback to be called for each point to determine the width of the line
+	 * at that point. Although `setPoints` accepts this function as an argument,
+	 * this has to be a public property so it can be used as a prop in
+	 * react-three-fiber.
+	 */
+	widthCallback: ((point: number) => number) | null = null
 
-	#attributes = null
+	#attributes: {
+		position: Float32BufferAttribute
+		previous: Float32BufferAttribute
+		next: Float32BufferAttribute
+		side: Float32BufferAttribute
+		width: Float32BufferAttribute
+		uv: Float32BufferAttribute
+		index: Uint16BufferAttribute
+		counters: Float32BufferAttribute
+	} | null = null
 
-	#points = []
+	declare attributes: Partial<{
+		position: Float32BufferAttribute
+		previous: Float32BufferAttribute
+		next: Float32BufferAttribute
+		side: Float32BufferAttribute
+		width: Float32BufferAttribute
+		uv: Float32BufferAttribute
+		index: Uint16BufferAttribute
+		counters: Float32BufferAttribute
+	}>
 
-	// for declaritive architectures
-	// to return the same value that sets the points
-	// eg. this.points = points
-	// console.log(this.points) -> points
+	#points: Vector3[] | WritableArrayLike<number> = []
+
+	/**
+	 * As an alternative to meshLine.setPoints(points), we can set
+	 * meshLine.points = points. This was added for and is public for use as a
+	 * prop in react-three-fiber.
+	 */
 	get points() {
 		return this.#points
 	}
@@ -47,23 +85,29 @@ export class MeshLine extends BufferGeometry {
 		this.setPoints(value, this.widthCallback)
 	}
 
-	setPoints(points, wcb) {
+	setPoints(points: Array<Vector3> | WritableArrayLike<number>, wcb?: ((point: number) => number) | null) {
 		if (!(points instanceof Float32Array) && !(points instanceof Array)) {
-			console.error('ERROR: The BufferArray of points is not instancied correctly.')
-			return
+			throw new Error('invalid points')
 		}
+
+		if (!points.length) return
+
 		// as the points are mutated we store them
-		// for later retreival when necessary (declaritive architectures)
+		// for later retreival when necessary (declarative architectures)
 		this.#points = points
-		this.widthCallback = wcb
+
+		if (wcb) this.widthCallback = wcb
 		this.#positions = []
 		this.#counters = []
-		if (points.length && points[0] instanceof Vector3) {
+
+		if (isVector3Array(points)) {
 			// could transform Vector3 array into the array used below
 			// but this approach will only loop through the array once
 			// and is more performant
 			for (let j = 0; j < points.length; j++) {
 				const p = points[j]
+				// @prod-prune
+				if (!p) throw new Error('point missing')
 				const c = j / points.length
 				this.#positions.push(p.x, p.y, p.z)
 				this.#positions.push(p.x, p.y, p.z)
@@ -73,16 +117,22 @@ export class MeshLine extends BufferGeometry {
 		} else {
 			for (let j = 0; j < points.length; j += 3) {
 				const c = j / points.length
-				this.#positions.push(points[j], points[j + 1], points[j + 2])
-				this.#positions.push(points[j], points[j + 1], points[j + 2])
+				const x = points[j + 0]
+				const y = points[j + 1]
+				const z = points[j + 2]
+				// @prod-prune
+				if (x == null || y == null || z == null) throw new Error('point missing')
+				this.#positions.push(x, y, z)
+				this.#positions.push(x, y, z)
 				this.#counters.push(c)
 				this.#counters.push(c)
 			}
 		}
+
 		this.#process()
 	}
 
-	#pointsAreEqual(pointIndexA, pointIndexB) {
+	#pointsAreEqual(pointIndexA: number, pointIndexB: number) {
 		const actualIndexA = pointIndexA * itemSize
 		const actualIndexB = pointIndexB * itemSize
 		return (
@@ -92,9 +142,14 @@ export class MeshLine extends BufferGeometry {
 		)
 	}
 
-	#clonePoint(pointIndex) {
+	#clonePoint(pointIndex: number): [number, number, number] {
 		const actualIndex = pointIndex * itemSize
-		return [this.#positions[actualIndex + 0], this.#positions[actualIndex + 1], this.#positions[actualIndex + 2]]
+		const x = this.#positions[actualIndex + 0]
+		const y = this.#positions[actualIndex + 1]
+		const z = this.#positions[actualIndex + 2]
+		// @prod-prune
+		if (x == null || y == null || z == null) throw new Error('point missing')
+		return [x, y, z]
 	}
 
 	#process() {
@@ -209,18 +264,21 @@ export class MeshLine extends BufferGeometry {
 	/**
 	 * Fast method to advance the line by one position.  The oldest position is removed.
 	 */
-	advance(position) {
-		const positions = this.#attributes.position.array
-		const previous = this.#attributes.previous.array
-		const next = this.#attributes.next.array
+	advance(position: Vector3) {
+		// @prod-prune
+		if (!this.#attributes) throw new Error('Call setPoints first.')
+
+		const positions = this.#attributes.position.array as Float32Array
+		const previous = this.#attributes.previous.array as Float32Array
+		const next = this.#attributes.next.array as Float32Array
 		const l = positions.length
 
-		// PREVIOUS
 		memcpy(positions, 0, previous, 0, l)
 
-		// POSITIONS
+		// FIFO
+		// shift all points left by one
 		memcpy(positions, itemSize, positions, 0, l - itemSize)
-
+		// add the new point at the end
 		positions[l - 6] = position.x
 		positions[l - 5] = position.y
 		positions[l - 4] = position.z
@@ -228,9 +286,8 @@ export class MeshLine extends BufferGeometry {
 		positions[l - 2] = position.y
 		positions[l - 1] = position.z
 
-		// NEXT
+		// similarly shift, but into the next array instead of in place
 		memcpy(positions, itemSize, next, 0, l - itemSize)
-
 		next[l - 6] = position.x
 		next[l - 5] = position.y
 		next[l - 4] = position.z
@@ -244,7 +301,15 @@ export class MeshLine extends BufferGeometry {
 	}
 }
 
-export function MeshLineRaycast(mesh, raycaster, intersects) {
+function isVector3Array(array: Array<Vector3> | WritableArrayLike<number>): array is Vector3[] {
+	return !!(array.length && array[0] instanceof Vector3)
+}
+
+export function MeshLineRaycast(
+	mesh: Mesh<MeshLine, MeshLineMaterial>,
+	raycaster: Raycaster,
+	intersects: Intersection[],
+) {
 	const inverseMatrix = new Matrix4()
 	const ray = new Ray()
 	const sphere = new Sphere()
@@ -253,10 +318,10 @@ export function MeshLineRaycast(mesh, raycaster, intersects) {
 	// Checking boundingSphere distance to ray
 
 	if (!geometry.boundingSphere) geometry.computeBoundingSphere()
-	sphere.copy(geometry.boundingSphere)
+	sphere.copy(geometry.boundingSphere!)
 	sphere.applyMatrix4(mesh.matrixWorld)
 
-	if (raycaster.ray.intersectSphere(sphere, interRay) === false) {
+	if (!raycaster.ray.intersectSphere(sphere, interRay)) {
 		return
 	}
 
@@ -272,16 +337,21 @@ export function MeshLineRaycast(mesh, raycaster, intersects) {
 
 	if (index !== null) {
 		const indices = index.array
-		const positions = attributes.position.array
-		const widths = attributes.width.array
+		const positions = attributes.position!.array
+		const widths = attributes.width!.array
 
 		for (let i = 0, l = indices.length - 1; i < l; i += step) {
 			const a = indices[i]
 			const b = indices[i + 1]
+			// @prod-prune
+			if (a == null || b == null) throw new Error('missing index')
 
 			vStart.fromArray(positions, a * 3)
 			vEnd.fromArray(positions, b * 3)
 			const width = widths[Math.floor(i / 3)] !== undefined ? widths[Math.floor(i / 3)] : 1
+			// @prod-prune
+			if (width == null) throw new Error('missing width')
+			raycaster.params.Line = raycaster.params.Line ?? {threshold: 1}
 			const precision = raycaster.params.Line.threshold + (mesh.material.lineWidth * width) / 2
 			const precisionSq = precision * precision
 
@@ -302,7 +372,7 @@ export function MeshLineRaycast(mesh, raycaster, intersects) {
 				point: interSegment.clone().applyMatrix4(mesh.matrixWorld),
 				index: i,
 				face: null,
-				faceIndex: null,
+				faceIndex: undefined,
 				object: mesh,
 			})
 			// make event only fire once
@@ -311,27 +381,16 @@ export function MeshLineRaycast(mesh, raycaster, intersects) {
 	}
 }
 
-function memcpy(src, srcOffset, dst, dstOffset, length) {
-	let i
+function memcpy(src: TypedArray, srcBegin: number, dst: TypedArray, dstOffset: number, srcLength: number) {
+	// @prod-prune
+	if (dstOffset + srcLength > dst.length) throw new Error('Not enough space to copy from src to dst.')
 
-	src = src.subarray || src.slice ? src : src.buffer
-	dst = dst.subarray || dst.slice ? dst : dst.buffer
-
-	src = srcOffset
-		? src.subarray
-			? src.subarray(srcOffset, length && srcOffset + length)
-			: src.slice(srcOffset, length && srcOffset + length)
-		: src
-
-	if (dst.set) {
-		dst.set(src, dstOffset)
-	} else {
-		for (i = 0; i < src.length; i++) {
-			dst[i + dstOffset] = src[i]
-		}
+	for (let i = 0, srcEnd = srcBegin + srcLength; i + srcBegin < srcEnd; i++) {
+		const srcValue = src[i + srcBegin]
+		// @prod-prune
+		if (srcValue == null) throw new Error('missing src value')
+		dst[i + dstOffset] = srcValue
 	}
-
-	return dst
 }
 
 ShaderChunk['meshline_vert'] = /*glsl*/ `
@@ -452,25 +511,44 @@ ShaderChunk['meshline_frag'] = /*glsl*/ `
 `
 
 export class MeshLineMaterial extends ShaderMaterial {
-	isMeshLineMaterial = true
-	type = 'MeshLineMaterial'
+	readonly isMeshLineMaterial = true
+	override readonly type = 'MeshLineMaterial'
 
-	constructor(parameters) {
+	declare uniforms: typeof UniformsLib['fog'] & {
+		lineWidth: IUniform<number>
+		map: IUniform<Texture | null>
+		useMap: IUniform<boolean>
+		alphaMap: IUniform<Texture | null>
+		useAlphaMap: IUniform<boolean>
+		color: IUniform<Color>
+		opacity: IUniform<number>
+		resolution: IUniform<Vector2>
+		sizeAttenuation: IUniform<boolean>
+		dashArray: IUniform<number>
+		dashOffset: IUniform<number>
+		dashRatio: IUniform<number>
+		useDash: IUniform<boolean>
+		visibility: IUniform<number>
+		alphaTest: IUniform<number>
+		repeat: IUniform<Vector2>
+	}
+
+	constructor(parameters: ShaderMaterialParameters & MeshLineMaterial) {
 		super({
 			uniforms: Object.assign({}, UniformsLib.fog, {
 				lineWidth: {value: 1},
 				map: {value: null},
-				useMap: {value: 0},
+				useMap: {value: false},
 				alphaMap: {value: null},
-				useAlphaMap: {value: 0},
+				useAlphaMap: {value: false},
 				color: {value: new Color(0xffffff)},
 				opacity: {value: 1},
 				resolution: {value: new Vector2(1, 1)},
-				sizeAttenuation: {value: 1},
+				sizeAttenuation: {value: true},
 				dashArray: {value: 0},
 				dashOffset: {value: 0},
 				dashRatio: {value: 0.5},
-				useDash: {value: 0},
+				useDash: {value: false},
 				visibility: {value: 1},
 				alphaTest: {value: 0},
 				repeat: {value: new Vector2(1, 1)},
@@ -484,146 +562,146 @@ export class MeshLineMaterial extends ShaderMaterial {
 		Object.defineProperties(this, {
 			lineWidth: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.lineWidth.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.lineWidth.value = value
 				},
 			},
 			map: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.map.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.map.value = value
 				},
 			},
 			useMap: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.useMap.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.useMap.value = value
 				},
 			},
 			alphaMap: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.alphaMap.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.alphaMap.value = value
 				},
 			},
 			useAlphaMap: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.useAlphaMap.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.useAlphaMap.value = value
 				},
 			},
 			color: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.color.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.color.value = value
 				},
 			},
 			opacity: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.opacity.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.opacity.value = value
 				},
 			},
 			resolution: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.resolution.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.resolution.value.copy(value)
 				},
 			},
 			sizeAttenuation: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.sizeAttenuation.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.sizeAttenuation.value = value
 				},
 			},
 			dashArray: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.dashArray.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.dashArray.value = value
-					this.useDash = value !== 0 ? 1 : 0
+					this.useDash = value !== 0 ? true : false
 				},
 			},
 			dashOffset: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.dashOffset.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.dashOffset.value = value
 				},
 			},
 			dashRatio: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.dashRatio.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.dashRatio.value = value
 				},
 			},
 			useDash: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.useDash.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.useDash.value = value
 				},
 			},
 			visibility: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.visibility.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.visibility.value = value
 				},
 			},
 			alphaTest: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.alphaTest.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.alphaTest.value = value
 				},
 			},
 			repeat: {
 				enumerable: true,
-				get: function () {
+				get: () => {
 					return this.uniforms.repeat.value
 				},
-				set: function (value) {
+				set: value => {
 					this.uniforms.repeat.value.copy(value)
 				},
 			},
@@ -632,8 +710,8 @@ export class MeshLineMaterial extends ShaderMaterial {
 		this.setValues(parameters)
 	}
 
-	copy(source) {
-		super.copy(this, source)
+	override copy(source: MeshLineMaterial) {
+		super.copy(this)
 
 		this.lineWidth = source.lineWidth
 		this.map = source.map
@@ -644,9 +722,9 @@ export class MeshLineMaterial extends ShaderMaterial {
 		this.opacity = source.opacity
 		this.resolution.copy(source.resolution)
 		this.sizeAttenuation = source.sizeAttenuation
-		this.dashArray.copy(source.dashArray)
-		this.dashOffset.copy(source.dashOffset)
-		this.dashRatio.copy(source.dashRatio)
+		this.dashArray = source.dashArray
+		this.dashOffset = source.dashOffset
+		this.dashRatio = source.dashRatio
 		this.useDash = source.useDash
 		this.visibility = source.visibility
 		this.alphaTest = source.alphaTest
@@ -655,3 +733,38 @@ export class MeshLineMaterial extends ShaderMaterial {
 		return this
 	}
 }
+
+export interface MeshLineMaterial {
+	lineWidth: number
+	map: Texture
+	useMap: boolean
+	alphaMap: Texture
+	useAlphaMap: boolean
+	color: Color
+	opacity: number
+	resolution: Vector2
+	sizeAttenuation: boolean
+	dashArray: number
+	dashOffset: number
+	dashRatio: number
+	useDash: boolean
+	visibility: number
+	alphaTest: number
+	repeat: Vector2
+}
+
+interface WritableArrayLike<T> {
+	readonly length: number
+	[n: number]: T
+}
+
+type TypedArray =
+	| Int8Array
+	| Uint8Array
+	| Uint8ClampedArray
+	| Int16Array
+	| Uint16Array
+	| Int32Array
+	| Uint32Array
+	| Float32Array
+	| Float64Array
