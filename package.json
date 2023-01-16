@@ -16,7 +16,9 @@
 		"LICENSE",
 		"History.md",
 		"README.md",
-		"src/THREE.MeshLine.js"
+		"src/THREE.MeshLine.js",
+        "importmap.html",
+        "importmap.js"
 	],
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
