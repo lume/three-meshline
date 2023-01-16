@@ -33,6 +33,7 @@ jobs:
           node-version: 18.x
           # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
           cache: 'npm'
+      - run: npm ci
       - run: npm run build
       - name: Upload build result for deploy job
         uses: actions/upload-pages-artifact@v1
