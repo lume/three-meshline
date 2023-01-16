@@ -52,6 +52,43 @@ export class MeshLineMaterial extends ShaderMaterial {
 		})
 
 		Object.defineProperties(this, {
+			fogColor: {
+				enumerable: true,
+				get: () => {
+					return this.uniforms.fogColor.value
+				},
+				set: value => {
+					this.uniforms.fogColor.value = value
+				},
+			},
+			fogDensity: {
+				enumerable: true,
+				get: () => {
+					return this.uniforms.fogDensity.value
+				},
+				set: value => {
+					this.uniforms.fogDensity.value = value
+				},
+			},
+			fogNear: {
+				enumerable: true,
+				get: () => {
+					return this.uniforms.fogNear.value
+				},
+				set: value => {
+					this.uniforms.fogNear.value = value
+				},
+			},
+			fogFar: {
+				enumerable: true,
+				get: () => {
+					return this.uniforms.fogFar.value
+				},
+				set: value => {
+					this.uniforms.fogFar.value = value
+				},
+			},
+
 			lineWidth: {
 				enumerable: true,
 				get: () => {
@@ -205,6 +242,11 @@ export class MeshLineMaterial extends ShaderMaterial {
 	override copy(source: MeshLineMaterial) {
 		super.copy(this)
 
+		this.fogColor = source.fogColor
+		this.fogDensity = source.fogDensity
+		this.fogNear = source.fogNear
+		this.fogFar = source.fogFar
+
 		this.lineWidth = source.lineWidth
 		this.map = source.map
 		this.useMap = source.useMap
@@ -227,6 +269,11 @@ export class MeshLineMaterial extends ShaderMaterial {
 }
 
 export interface MeshLineMaterial {
+	fogColor: Color
+	fogDensity: number
+	fogNear: number
+	fogFar: number
+
 	lineWidth: number
 	map: Texture
 	useMap: boolean
