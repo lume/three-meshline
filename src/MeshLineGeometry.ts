@@ -8,15 +8,14 @@ export class MeshLineGeometry extends BufferGeometry {
 	readonly isMeshLineGeometry = true
 	override readonly type = 'MeshLineGeometry'
 
-	#positions: number[] = []
-
-	#previous: number[] = []
-	#next: number[] = []
-	#side: number[] = []
-	#width: number[] = []
-	#indices_array: number[] = []
-	#uvs: number[] = []
-	#counters: number[] = []
+	#positions = new Float32Array()
+	#previous = new Float32Array()
+	#next = new Float32Array()
+	#side = new Float32Array()
+	#width = new Float32Array()
+	#uvs = new Float32Array()
+	#indices = new Uint16Array()
+	#counters = new Float32Array()
 
 	/**
 	 * A callback to be called for each point to determine the width of the line
@@ -33,8 +32,8 @@ export class MeshLineGeometry extends BufferGeometry {
 		side: Float32BufferAttribute
 		width: Float32BufferAttribute
 		uv: Float32BufferAttribute
-		index: Uint16BufferAttribute
 		counters: Float32BufferAttribute
+		index: Uint16BufferAttribute
 	} | null = null
 
 	declare attributes: Partial<{
@@ -44,8 +43,8 @@ export class MeshLineGeometry extends BufferGeometry {
 		side: Float32BufferAttribute
 		width: Float32BufferAttribute
 		uv: Float32BufferAttribute
-		index: Uint16BufferAttribute
 		counters: Float32BufferAttribute
+		index: Uint16BufferAttribute
 	}>
 
 	#points: Vector3[] | WritableArrayLike<number> = []
@@ -62,166 +61,205 @@ export class MeshLineGeometry extends BufferGeometry {
 		this.setPoints(value, this.widthCallback)
 	}
 
+	#previousPointCount = 0
+	#pointCount = 0
+
 	setPoints(points: Array<Vector3> | WritableArrayLike<number>, wcb?: ((point: number) => number) | null) {
-		if (!(points instanceof Float32Array) && !(points instanceof Array)) {
-			throw new Error('invalid points')
-		}
-
-		if (!points.length) return
-
 		// as the points are mutated we store them
 		// for later retreival when necessary (declarative architectures)
 		this.#points = points
-
 		if (wcb) this.widthCallback = wcb
-		this.#positions = []
-		this.#counters = []
+
+		if (!points.length) {
+			throw new Error('not a Vector3 Array, or not a number Array or Float32Array with 3 numbers per point')
+		}
+
+		if (!points.length) {
+			// Dispose in case we previously had points and they're being removed.
+			this.dispose()
+			this.#pointCount = 0
+			this.#previousPointCount = 0
+			return
+		}
 
 		if (isVector3Array(points)) {
-			// could transform Vector3 array into the array used below
-			// but this approach will only loop through the array once
-			// and is more performant
+			this.#pointCount = points.length
+		} else {
+			// @prod-prune
+			if (points.length % 3 !== 0) throw new Error('The array should consist of number triplets, 3 number per point.')
+			this.#pointCount = points.length / 3
+		}
+
+		const pointCount = this.#pointCount
+
+		if (!this.#attributes || this.#previousPointCount !== pointCount) {
+			this.#makeNewBuffers(pointCount)
+		}
+
+		this.#previousPointCount = pointCount
+
+		let width
+		let x: number | undefined = 0
+		let y: number | undefined = 0
+		let z: number | undefined = 0
+
+		let positionIndex = 0
+		let counterIndex = 0
+		let previousIndex = 0
+		let nextIndex = 0
+		let sideIndex = 0
+		let widthIndex = 0
+		let indicesIndex = 0
+		let uvsIndex = 0
+
+		if (isVector3Array(points)) {
 			for (let j = 0; j < points.length; j++) {
 				const p = points[j]
 				// @prod-prune
 				if (!p) throw new Error('point missing')
+				;({x, y, z} = p)
+				setXYZXYZ(this.#positions, positionIndex, x, y, z)
+				positionIndex += itemSize
+
 				const c = j / points.length
-				this.#positions.push(p.x, p.y, p.z)
-				this.#positions.push(p.x, p.y, p.z)
-				this.#counters.push(c)
-				this.#counters.push(c)
+				this.#counters[counterIndex + 0] = c
+				this.#counters[counterIndex + 1] = c
+				counterIndex += 2
 			}
 		} else {
 			for (let j = 0; j < points.length; j += 3) {
-				const c = j / points.length
 				const x = points[j + 0]
 				const y = points[j + 1]
 				const z = points[j + 2]
 				// @prod-prune
 				if (x == null || y == null || z == null) throw new Error('point missing')
-				this.#positions.push(x, y, z)
-				this.#positions.push(x, y, z)
-				this.#counters.push(c)
-				this.#counters.push(c)
+				setXYZXYZ(this.#positions, positionIndex, x, y, z)
+				positionIndex += itemSize
+
+				const c = j / points.length
+				this.#counters[counterIndex + 0] = c
+				this.#counters[counterIndex + 1] = c
+				counterIndex += 2
 			}
 		}
 
-		this.#process()
-	}
-
-	#pointsAreEqual(pointIndexA: number, pointIndexB: number) {
-		const actualIndexA = pointIndexA * itemSize
-		const actualIndexB = pointIndexB * itemSize
-		return (
-			this.#positions[actualIndexA + 0] === this.#positions[actualIndexB + 0] &&
-			this.#positions[actualIndexA + 1] === this.#positions[actualIndexB + 1] &&
-			this.#positions[actualIndexA + 2] === this.#positions[actualIndexB + 2]
-		)
-	}
-
-	#clonePoint(pointIndex: number): [number, number, number] {
-		const actualIndex = pointIndex * itemSize
-		const x = this.#positions[actualIndex + 0]
-		const y = this.#positions[actualIndex + 1]
-		const z = this.#positions[actualIndex + 2]
-		// @prod-prune
-		if (x == null || y == null || z == null) throw new Error('point missing')
-		return [x, y, z]
-	}
-
-	#process() {
-		const pointCount = this.#positions.length / itemSize
-
-		this.#previous = []
-		this.#next = []
-		this.#side = []
-		this.#width = []
-		this.#indices_array = []
-		this.#uvs = []
-
-		let width
-		let point
+		let getIndex = 0
 
 		// initial previous points
 		if (this.#pointsAreEqual(0, pointCount - 1)) {
-			point = this.#clonePoint(pointCount - 2)
+			getIndex = (pointCount - 2) * itemSize
+			x = this.#positions[getIndex + 0]
+			y = this.#positions[getIndex + 1]
+			z = this.#positions[getIndex + 2]
 		} else {
-			point = this.#clonePoint(0)
+			getIndex = 0
+			x = this.#positions[getIndex + 0]
+			y = this.#positions[getIndex + 1]
+			z = this.#positions[getIndex + 2]
 		}
-		this.#previous.push(point[0], point[1], point[2])
-		this.#previous.push(point[0], point[1], point[2])
+		// @prod-prune
+		if (x == null || y == null || z == null) throw new Error('point missing')
+		setXYZXYZ(this.#previous, previousIndex, x, y, z)
+		previousIndex += 6
 
 		for (let j = 0; j < pointCount; j++) {
 			// sides
-			this.#side.push(1)
-			this.#side.push(-1)
+			setXY(this.#side, sideIndex, 1, -1)
+			sideIndex += 2
 
 			// widths
 			if (this.widthCallback) width = this.widthCallback(j / (pointCount - 1))
 			else width = 1
-			this.#width.push(width)
-			this.#width.push(width)
+			setXY(this.#width, widthIndex, width, width)
+			widthIndex += 2
 
 			// uvs
-			this.#uvs.push(j / (pointCount - 1), 0)
-			this.#uvs.push(j / (pointCount - 1), 1)
+			setXYZW(this.#uvs, uvsIndex, j / (pointCount - 1), 0, j / (pointCount - 1), 1)
+			uvsIndex += 4
 
 			if (j < pointCount - 1) {
 				// points previous to poisitions
-				point = this.#clonePoint(j)
-				this.#previous.push(point[0], point[1], point[2])
-				this.#previous.push(point[0], point[1], point[2])
+				getIndex = j * itemSize
+				x = this.#positions[getIndex + 0]
+				y = this.#positions[getIndex + 1]
+				z = this.#positions[getIndex + 2]
+				// @prod-prune
+				if (x == null || y == null || z == null) throw new Error('point missing')
+				setXYZXYZ(this.#previous, previousIndex, x, y, z)
+				previousIndex += 6
 
 				// indices
+				// index has one less point count than previous because it
+				// represents indices *between* points (the number of spaces
+				// between points is one less than the number of points). F.e.
+				// Given this line with 4 points, • • • •, there are 3 spaces
+				// between the points.
 				const n = j * 2
-				this.#indices_array.push(n, n + 1, n + 2)
-				this.#indices_array.push(n + 2, n + 1, n + 3)
+				setXYZ(this.#indices, indicesIndex, n + 0, n + 1, n + 2)
+				setXYZ(this.#indices, indicesIndex + 3, n + 2, n + 1, n + 3)
+				indicesIndex += 6
 			}
+
 			if (j > 0) {
 				// points after poisitions
-				point = this.#clonePoint(j)
-				this.#next.push(point[0], point[1], point[2])
-				this.#next.push(point[0], point[1], point[2])
+				getIndex = j * itemSize
+				x = this.#positions[getIndex + 0]
+				y = this.#positions[getIndex + 1]
+				z = this.#positions[getIndex + 2]
+				// @prod-prune
+				if (x == null || y == null || z == null) throw new Error('point missing')
+				setXYZXYZ(this.#next, nextIndex, x, y, z)
+				nextIndex += 6
 			}
 		}
 
 		// last next point
 		if (this.#pointsAreEqual(pointCount - 1, 0)) {
-			point = this.#clonePoint(1)
+			getIndex = 1 * itemSize
+			x = this.#positions[getIndex + 0]
+			y = this.#positions[getIndex + 1]
+			z = this.#positions[getIndex + 2]
 		} else {
-			point = this.#clonePoint(pointCount - 1)
+			getIndex = (pointCount - 1) * itemSize
+			x = this.#positions[getIndex + 0]
+			y = this.#positions[getIndex + 1]
+			z = this.#positions[getIndex + 2]
 		}
-		this.#next.push(point[0], point[1], point[2])
-		this.#next.push(point[0], point[1], point[2])
+		// @prod-prune
+		if (x == null || y == null || z == null) throw new Error('point missing')
+		setXYZXYZ(this.#next, nextIndex, x, y, z)
 
-		// redefining the attribute seems to prevent range errors
-		// if the user sets a differing number of vertices
-		if (!this.#attributes || this.#attributes.position.count * 3 !== this.#positions.length) {
-			this.#attributes = {
-				position: new BufferAttribute(new Float32Array(this.#positions), 3),
-				previous: new BufferAttribute(new Float32Array(this.#previous), 3),
-				next: new BufferAttribute(new Float32Array(this.#next), 3),
-				side: new BufferAttribute(new Float32Array(this.#side), 1),
-				width: new BufferAttribute(new Float32Array(this.#width), 1),
-				uv: new BufferAttribute(new Float32Array(this.#uvs), 2),
-				index: new BufferAttribute(new Uint16Array(this.#indices_array), 1),
-				counters: new BufferAttribute(new Float32Array(this.#counters), 1),
-			}
-		} else {
-			this.#attributes.position.copyArray(this.#positions)
-			this.#attributes.position.needsUpdate = true
-			this.#attributes.previous.copyArray(this.#previous)
-			this.#attributes.previous.needsUpdate = true
-			this.#attributes.next.copyArray(this.#next)
-			this.#attributes.next.needsUpdate = true
-			this.#attributes.side.copyArray(this.#side)
-			this.#attributes.side.needsUpdate = true
-			this.#attributes.width.copyArray(this.#width)
-			this.#attributes.width.needsUpdate = true
-			this.#attributes.uv.copyArray(this.#uvs)
-			this.#attributes.uv.needsUpdate = true
-			this.#attributes.index.copyArray(this.#indices_array)
-			this.#attributes.index.needsUpdate = true
+		// @prod-prune
+		if (!this.#attributes) throw new Error('missing attributes')
+		this.#attributes.position.needsUpdate = true
+		this.#attributes.previous.needsUpdate = true
+		this.#attributes.next.needsUpdate = true
+		this.#attributes.side.needsUpdate = true
+		this.#attributes.width.needsUpdate = true
+		this.#attributes.uv.needsUpdate = true
+		this.#attributes.index.needsUpdate = true
+
+		this.computeBoundingSphere()
+		this.computeBoundingBox()
+	}
+
+	#makeNewBuffers(pointCount: number) {
+		// don't forget to remove the previous buffers from the GPU first.
+		this.dispose()
+
+		this.#attributes = {
+			position: new BufferAttribute((this.#positions = new Float32Array(pointCount * itemSize)), 3),
+			previous: new BufferAttribute((this.#previous = new Float32Array(pointCount * itemSize)), 3),
+			next: new BufferAttribute((this.#next = new Float32Array(pointCount * itemSize)), 3),
+			side: new BufferAttribute((this.#side = new Float32Array(pointCount * 2)), 1),
+			width: new BufferAttribute((this.#width = new Float32Array(pointCount * 2)), 1),
+			uv: new BufferAttribute((this.#uvs = new Float32Array(pointCount * 4)), 2),
+			counters: new BufferAttribute((this.#counters = new Float32Array(pointCount * 2)), 1),
+			// index has one less point count because it represents indices
+			// *between* points (the number of spaces between points is one
+			// less than the number of points). F.e. Given this line with 4
+			// points, • • • •, there are 3 spaces between the points.
+			index: new BufferAttribute((this.#indices = new Uint16Array((pointCount - 1) * itemSize)), 1),
 		}
 
 		this.setAttribute('position', this.#attributes.position)
@@ -233,9 +271,16 @@ export class MeshLineGeometry extends BufferGeometry {
 		this.setAttribute('counters', this.#attributes.counters)
 
 		this.setIndex(this.#attributes.index)
+	}
 
-		this.computeBoundingSphere()
-		this.computeBoundingBox()
+	#pointsAreEqual(pointIndexA: number, pointIndexB: number) {
+		const actualIndexA = pointIndexA * itemSize
+		const actualIndexB = pointIndexB * itemSize
+		return (
+			this.#positions[actualIndexA + 0] === this.#positions[actualIndexB + 0] &&
+			this.#positions[actualIndexA + 1] === this.#positions[actualIndexB + 1] &&
+			this.#positions[actualIndexA + 2] === this.#positions[actualIndexB + 2]
+		)
 	}
 
 	/**
@@ -292,6 +337,34 @@ function memcpy(src: TypedArray, srcBegin: number, dst: TypedArray, dstOffset: n
 		if (srcValue == null) throw new Error('missing src value')
 		dst[i + dstOffset] = srcValue
 	}
+}
+
+function setXY(array: WritableArrayLike<number>, location: number, x: number, y: number) {
+	array[location + 0] = x
+	array[location + 1] = y
+}
+
+function setXYZ(array: WritableArrayLike<number>, location: number, x: number, y: number, z: number) {
+	array[location + 0] = x
+	array[location + 1] = y
+	array[location + 2] = z
+}
+
+function setXYZXYZ(array: WritableArrayLike<number>, location: number, x: number, y: number, z: number) {
+	array[location + 0] = x
+	array[location + 1] = y
+	array[location + 2] = z
+
+	array[location + 3] = x
+	array[location + 4] = y
+	array[location + 5] = z
+}
+
+function setXYZW(array: WritableArrayLike<number>, location: number, x: number, y: number, z: number, w: number) {
+	array[location + 0] = x
+	array[location + 1] = y
+	array[location + 2] = z
+	array[location + 3] = w
 }
 
 interface WritableArrayLike<T> {
