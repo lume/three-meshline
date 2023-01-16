@@ -82,7 +82,9 @@ export class MeshLineGeometry extends BufferGeometry {
 			return
 		}
 
-		if (isVector3Array(points)) {
+		const isVector3Arr = isVector3Array(points)
+
+		if (isVector3Arr) {
 			this.#pointCount = points.length
 		} else {
 			// @prod-prune
@@ -112,7 +114,7 @@ export class MeshLineGeometry extends BufferGeometry {
 		let indicesIndex = 0
 		let uvsIndex = 0
 
-		if (isVector3Array(points)) {
+		if (isVector3Arr) {
 			for (let j = 0; j < points.length; j++) {
 				const p = points[j]
 				// @prod-prune
