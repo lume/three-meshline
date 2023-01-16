@@ -84,8 +84,15 @@ Finally import APIs into your JavaScript code:
 import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
 ```
 
-<!-- Alternatively, without installing locally and using the import from
-node_modules, use the one from https://....... -->
+<!--
+### _Without_ self-hosted dependencies, f.e. from CDN:
+
+Alternatively, use an importmap from CDN
+F.e.
+```html
+<script src="https://unpkg.com/@lume/three-meshline/importmap.js"></script>
+```
+-->
 
 ### Create an array of 3D coordinates
 
