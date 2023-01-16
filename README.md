@@ -235,6 +235,7 @@ Dynamic line widths can be set along each point using the `widthCallback` prop.
 - Faster setPoints() method
 - Size attenuation when using OrthographicCamera
 - Support for vertex colors (`geometry.vertexColors`)
+- global script for people still using global script tags for a global THREE variable
 
 # Support
 
