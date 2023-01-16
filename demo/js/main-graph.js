@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
-import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
 
 var container = document.getElementById('container')
 
@@ -31,7 +31,7 @@ init()
 render()
 
 function makeLine(geo, c) {
-	var g = new MeshLine()
+	var g = new MeshLineGeometry()
 	g.setPoints(geo)
 
 	var material = new MeshLineMaterial({
@@ -42,7 +42,7 @@ function makeLine(geo, c) {
 		sizeAttenuation: false,
 		lineWidth: 10,
 	})
-	var mesh = new THREE.Mesh(g, material)
+	var mesh = new MeshLine(g, material)
 	graph.add(mesh)
 }
 

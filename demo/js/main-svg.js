@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
-import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
 
 var container = document.getElementById('container')
 
@@ -47,10 +47,10 @@ loader.load('assets/stroke.png', function (texture) {
 })
 
 function makeLine(geo) {
-	var g = new MeshLine()
+	var g = new MeshLineGeometry()
 	g.setPoints(geo)
 
-	var mesh = new THREE.Mesh(g, material)
+	var mesh = new MeshLine(g, material)
 	mesh.position.z += 500
 	mesh.position.y += 300
 	mesh.rotation.y = -Math.PI / 2

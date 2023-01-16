@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
-import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
 import {ConstantSpline} from './THREE.ConstantSpline.js'
 import {Maf} from './Maf.js'
 
@@ -132,7 +132,7 @@ function clearLines() {
 }
 
 function makeLine(geo) {
-	var g = new MeshLine()
+	var g = new MeshLineGeometry()
 
 	switch (params.taper) {
 		case 'none':
@@ -172,7 +172,7 @@ function makeLine(geo) {
 		transparent: true,
 		side: THREE.DoubleSide,
 	})
-	var mesh = new THREE.Mesh(g, material)
+	var mesh = new MeshLine(g, material)
 	if (params.spread || params.circles) {
 		var r = 50
 		mesh.position.set(Maf.randomInRange(-r, r), Maf.randomInRange(-r, r), Maf.randomInRange(-r, r))

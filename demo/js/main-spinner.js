@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
 import {Maf} from './Maf.js'
 
 var container = document.getElementById('container')
@@ -47,7 +47,7 @@ function prepareMesh() {
 		geo[j] = geo[j + 1] = geo[j + 2] = 0
 	}
 
-	var g = new MeshLine()
+	var g = new MeshLineGeometry()
 	g.setPoints(geo, p => p)
 
 	material = new MeshLineMaterial({
@@ -64,7 +64,7 @@ function prepareMesh() {
 		repeat: new THREE.Vector2(1, 2),
 	})
 
-	var mesh = new THREE.Mesh(g, material)
+	var mesh = new MeshLine(g, material)
 	mesh.geo = geo
 	mesh.g = g
 

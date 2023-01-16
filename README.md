@@ -1,4 +1,4 @@
-# @lume/three-meshline
+# `@lume/three-meshline`
 
 Provides a Mesh-based replacement for `THREE.Line` from
 [Three.js](http://threejs.org), allowing line thicknesses of any size
@@ -11,12 +11,14 @@ Provides a Mesh-based replacement for `THREE.Line` from
 
 Instead of using GL_LINE, it uses a strip of triangles billboarded. Some examples:
 
-[![Demo](screenshots/demo.jpg)](http://spite.github.io/THREE.MeshLine/demo/index.html)
-[![Graph](screenshots/graph.jpg)](http://spite.github.io/THREE.MeshLine/demo/graph.html)
-[![Spinner](screenshots/spinner.jpg)](http://spite.github.io/THREE.MeshLine/demo/spinner.html)
-[![SVG](screenshots/svg.jpg)](http://spite.github.io/THREE.MeshLine/demo/svg.html)
-[![Shape](screenshots/shape.jpg)](http://spite.github.io/THREE.MeshLine/demo/shape.html)
-[![Shape](screenshots/birds.jpg)](http://spite.github.io/THREE.MeshLine/demo/birds.html)
+<p align="center">
+  <a href="http://spite.github.io/THREE.MeshLine/demo/index.html"><img width="32%" src="screenshots/demo.jpg" alt="Demo"/></a>
+  <a href="http://spite.github.io/THREE.MeshLine/demo/graph.html"><img width="32%" src="screenshots/graph.jpg" alt="Graph"/></a>
+  <a href="http://spite.github.io/THREE.MeshLine/demo/spinner.html"><img width="32%" src="screenshots/spinner.jpg" alt="Spinner"/></a>
+  <a href="http://spite.github.io/THREE.MeshLine/demo/svg.html"><img width="32%" src="screenshots/svg.jpg" alt="SVG"/></a>
+  <a href="http://spite.github.io/THREE.MeshLine/demo/shape.html"><img width="32%" src="screenshots/shape.jpg" alt="Shape"/></a>
+  <a href="http://spite.github.io/THREE.MeshLine/demo/birds.html"><img width="32%" src="screenshots/birds.jpg" alt="Birds"/></a>
+</p>
 
 - [Demo](http://spite.github.io/THREE.MeshLine/demo/index.html): play with the
   different settings of materials
@@ -31,15 +33,15 @@ Instead of using GL_LINE, it uses a strip of triangles billboarded. Some example
 - [Birds](http://spite.github.io/THREE.MeshLine/demo/birds.html): example of
   `MeshLine.advance()` by @caramelcode (Jared Sprague) and @mwcz (Michael Clayton)
 
-### How to use
+# How to use
 
 - Include script
 - Create an array of 3D coordinates
-- Create a MeshLine and assign the points
-- Create a MeshLineMaterial
-- Use MeshLine and MeshLineMaterial to create a THREE.Mesh
+- Create a `MeshLineGeometry` and assign the points
+- Create a `MeshLineMaterial` to style the line points
+- Create a `MeshLine` rendering object given the `MeshLineGeometry` and `MeshLineMaterial`
 
-#### Install
+## Install
 
 First install `@lume/three-meshline`:
 
@@ -75,13 +77,13 @@ importmap manually in your HTML like so:
 Finally import into your code:
 
 ```js
-import {MeshLine, MeshLineMaterial, MeshLineRaycast} from '@lume/three-meshline'
+import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
 ```
 
 <!-- Alternatively, without installing locally and using the import from
 node_modules, use the one from https://....... -->
 
-##### Create an array of 3D coordinates
+### Create an array of 3D coordinates
 
 First, create the list of numbers that will define the 3D points for the line.
 
@@ -92,27 +94,30 @@ for (let j = 0; j < Math.PI; j += (2 * Math.PI) / 100) {
 }
 ```
 
-##### Create a MeshLine and assign the points
+### Create a `MeshLineGeometry` and assign the points
 
-Once you have that, you can create a new `MeshLine`, and call `.setPoints()` passing the list of points.
+Once you have that, you can create a new `MeshLineGeometry`, and call
+`.setPoints()` passing the list of points.
 
 ```js
-const line = new MeshLine()
-line.setPoints(points)
+const geometry = new MeshLineGeometry()
+geometry.setPoints(points)
 ```
 
-Note: `.setPoints` accepts a second parameter, which is a function to define the width in each point along the line. By default that value is 1, making the line width 1 \* lineWidth in the material.
+Note: `.setPoints` accepts a second parameter, which is a function to define the
+width in each point along the line. By default that value is 1, making the line
+width 1 \* lineWidth in the material.
 
 ```js
 // p is a decimal percentage of the number of points
 // ie. point 200 of 250 points, p = 0.8
-line.setPoints(geometry, p => 2) // makes width 2 * lineWidth
-line.setPoints(geometry, p => 1 - p) // makes width taper from the beginning
-line.setPoints(geometry, p => 1 - (1 - p)) // makes width taper from the end
-line.setPoints(geometry, p => 2 + Math.sin(50 * p)) // makes width sinusoidal
+geometry.setPoints(points, p => 2) // makes width 2 * lineWidth
+geometry.setPoints(points, p => 1 - p) // makes width taper from the beginning
+geometry.setPoints(points, p => 1 - (1 - p)) // makes width taper from the end
+geometry.setPoints(points, p => 2 + Math.sin(50 * p)) // makes width sinusoidal
 ```
 
-##### Create a MeshLineMaterial
+### Create a `MeshLineMaterial`
 
 A `MeshLine` needs a `MeshLineMaterial`:
 
@@ -120,7 +125,7 @@ A `MeshLine` needs a `MeshLineMaterial`:
 const material = new MeshLineMaterial(options)
 ```
 
-By default it's a white material of width 1 unit.
+By default it's a white material with line width 1 unit.
 
 `MeshLineMaterial` accepts `options` to control the appereance of the `MeshLine`:
 
@@ -161,48 +166,48 @@ If you're rendering transparent lines or using a texture with alpha map, you may
 consider setting `depthTest` to `false`, `transparent` to `true` and `blending`
 to an appropriate blending mode, or use `alphaTest`.
 
-##### Use MeshLine and MeshLineMaterial to create a THREE.Mesh
+### Use `MeshLineGeometry` and `MeshLineMaterial` to create a `MeshLine`
 
 Finally, we create a mesh and add it to the scene:
 
 ```js
-const mesh = new THREE.Mesh(line, material)
-scene.add(mesh)
+const line = new MeshLine(geometry, material)
+scene.add(line)
 ```
 
-You can optionally add raycast support with the following.
+Note that `MeshLine` extends from `THREE.Mesh` and adds raycast support:
 
 ```js
-mesh.raycast = MeshLineRaycast.bind(null, mesh)
 const raycaster = new THREE.Raycaster()
-// ... use raycaster as usual ...
+// Use raycaster as usual:
+raycaster.intersectObject(line)
 ```
 
-### Declarative use
+# Declarative use
 
-#### react-three-fiber
+## react-three-fiber
 
-THREE.meshline can be used declaritively. This is how it would look like in
+`MeshLine` can be used declaritively. This is how it would look like in
 [react-three-fiber](https://github.com/drcmda/react-three-fiber). You can try it
 live
 [here](https://codesandbox.io/s/react-three-fiber-three.meshline-example-vl221).
 
 <p align="center">
-	<a href="https://codesandbox.io/s/react-three-fiber-threejs-meshline-example-vl221"><img width="432" height="240" src="https://imgur.com/mZikTAH.gif" /></a>
-	<a href="https://codesandbox.io/s/threejs-meshline-custom-spring-3-ypkxx"><img width="432" height="240" src="https://imgur.com/g8ts0vJ.gif" /></a>
+	<a href="https://codesandbox.io/s/react-three-fiber-threejs-meshline-example-vl221"><img width="49%" src="https://imgur.com/mZikTAH.gif" alt="react-three-fiber confetti" /></a>
+	<a href="https://codesandbox.io/s/threejs-meshline-custom-spring-3-ypkxx"><img width="49%" src="https://imgur.com/g8ts0vJ.gif" alt="react-three-fiber sine wave" /></a>
 </p>
 
 ```jsx
 import {extend, Canvas} from 'react-three-fiber'
 import {MeshLine, MeshLineMaterial, MeshLineRaycast} from '@lume/three-meshline'
 
-extend({MeshLine, MeshLineMaterial})
+extend({MeshLine, MeshLineGeometry, MeshLineMaterial})
 
 function Line({points, width, color}) {
 	return (
 		<Canvas>
-			<mesh raycast={MeshLineRaycast}>
-				<meshLine attach="geometry" points={points} />
+			<meshLine>
+				<meshLineGeometry attach="geometry" points={points} />
 				<meshLineMaterial
 					attach="material"
 					transparent
@@ -212,7 +217,7 @@ function Line({points, width, color}) {
 					dashArray={0.05}
 					dashRatio={0.95}
 				/>
-			</mesh>
+			</meshLine>
 		</Canvas>
 	)
 }
@@ -221,14 +226,17 @@ function Line({points, width, color}) {
 Dynamic line widths can be set along each point using the `widthCallback` prop.
 
 ```jsx
-<meshLine attach="geometry" points={points} widthCallback={pointWidth => pointWidth * Math.random()} />
+<meshLineGeometry attach="geometry" points={points} widthCallback={pointWidth => pointWidth * Math.random()} />
 ```
 
-### TODO
+# TODO
 
 - Better miters
+- Faster setPoints() method
+- Size attenuation when using OrthographicCamera
+- Support for vertex colors (`geometry.vertexColors`)
 
-### Support
+# Support
 
 Tested successfully on
 
@@ -236,12 +244,12 @@ Tested successfully on
 - Firefox OSX, Windows, Anroid
 - Safari OSX, iOS
 
-### References
+# References
 
 - [Drawing lines is hard](http://mattdesl.svbtle.com/drawing-lines-is-hard)
 - [WebGL rendering of solid trails](http://codeflow.org/entries/2012/aug/05/webgl-rendering-of-solid-trails/)
 - [Drawing Antialiased Lines with OpenGL](https://www.mapbox.com/blog/drawing-antialiased-lines/)
 
-#### License
+# License
 
 MIT licensed

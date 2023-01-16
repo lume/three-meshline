@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader.js'
 import {mergeBufferGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
 
 var container = document.getElementById('container')
 
@@ -109,11 +109,11 @@ function collectPoints(source) {
 
 	scene.remove(o)
 
-	var l = new MeshLine()
+	var l = new MeshLineGeometry()
 	l.setPoints(points, function (p) {
 		return p
 	})
-	var line = new THREE.Mesh(l, material)
+	var line = new MeshLine(l, material)
 	scene.add(line)
 
 	document.querySelector('#title p').style.display = 'none'

@@ -37,7 +37,7 @@
 		<script type="module">
 			import * as THREE from 'three'
 			import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
-			import {MeshLine, MeshLineMaterial} from '@lume/three-meshline'
+			import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
 			import {Bird} from './js/Bird.js'
 
 			var scene = new THREE.Scene()
@@ -96,7 +96,7 @@
 						positions.push(this.position.clone())
 					}
 
-					this.trail_line = new MeshLine()
+					this.trail_line = new MeshLineGeometry()
 					this.trail_line.setPoints(positions, p => 1 - (1 - p))
 
 					// Create the line material
@@ -113,7 +113,7 @@
 						fog: true,
 					})
 
-					this.trail_mesh = new THREE.Mesh(this.trail_line, this.trail_material) // this syntax could definitely be improved!
+					this.trail_mesh = new MeshLine(this.trail_line, this.trail_material) // this syntax could definitely be improved!
 					this.trail_mesh.frustumCulled = false
 
 					scene.add(this.trail_mesh)
