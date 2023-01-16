@@ -54,6 +54,8 @@ Instead of using GL_LINE, it uses a strip of triangles billboarded. Some example
 
 ## Install
 
+### With self-hosted dependencies installed locally:
+
 First install `@lume/three-meshline`:
 
 ```
@@ -63,7 +65,7 @@ npm i @lume/three-meshline
 Add the importmap to your HTML if you are using native [JavaScript modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) (if you have a build step handling your modules, you'd skip this):
 
 ```html
-<script src="./node_modules/@lume/three-meshline/importmap.js"></script>
+<script src="/node_modules/@lume/three-meshline/importmap.js"></script>
 ```
 
 If your browser doesn't support
@@ -72,20 +74,11 @@ natively yet, you can load an importmap polyfill then embed the
 importmap manually in your HTML like so:
 
 ```html
-<script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-<script type="importmap">
-	{
-		"imports": {
-			"three": "/node_modules/three/build/three.module.js",
-			"three/": "/node_modules/three/",
-			"@lume/three-meshline": "/node_modules/@lume/three-meshline/dist/index.js",
-			"@lume/three-meshline/": "/node_modules/@lume/three-meshline/"
-		}
-	}
-</script>
+<script defer src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script src="/node_modules/@lume/three-meshline/importmap.js"></script>
 ```
 
-Finally import into your code:
+Finally import APIs into your JavaScript code:
 
 ```js
 import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'

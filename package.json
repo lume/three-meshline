@@ -9,12 +9,6 @@
 	"exports": {
 		".": "./dist/index.js"
 	},
-	"files": [
-		"LICENSE",
-		"History.md",
-		"README.md",
-		"src/THREE.MeshLine.js"
-	],
 	"scripts": {
 		"LUME SCRIPTS /////////////////////////////////////////////": "",
 		"clean": "lume clean",
