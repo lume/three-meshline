@@ -16,7 +16,23 @@
 		"src/THREE.MeshLine.js"
 	],
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"LUME SCRIPTS /////////////////////////////////////////////": "",
+		"clean": "lume clean",
+		"build": "lume build",
+		"dev": "lume dev",
+		"typecheck": "lume typecheck",
+		"typecheck:watch": "lume typecheckWatch",
+		"test": "lume test",
+		"test:debug": "lume testDebug",
+		"prettier": "lume prettier",
+		"prettier:check": "lume prettierCheck",
+		"release:patch": "lume releasePatch",
+		"release:minor": "lume releaseMinor",
+		"release:major": "lume releaseMajor",
+		"version": "lume versionHook",
+		"postversion": "lume postVersionHook",
+		"OTHER SCRIPTS ////////////////////////////////////////////": "",
+		"prepare": "npm run build"
 	},
 	"peerDependencies": {
 		"three": "*"
