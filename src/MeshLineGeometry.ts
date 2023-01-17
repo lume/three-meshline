@@ -61,16 +61,23 @@ export class MeshLineGeometry extends BufferGeometry {
 		this.setPoints(value, this.widthCallback)
 	}
 
+	#previousWidthCallback: ((p: number) => number) | null = null
 	#previousPointCount = 0
 	#pointCount = 0
 
-	setPoints(points: Array<Vector3> | WritableArrayLike<number>, wcb?: ((point: number) => number) | null) {
+	setPoints(
+		points: Array<Vector3> | WritableArrayLike<number>,
+		widthCallback: ((point: number) => number) | null = null,
+		updateBounds: boolean = true,
+	) {
 		// as the points are mutated we store them
 		// for later retreival when necessary (declarative architectures)
 		this.#points = points
-		if (wcb) this.widthCallback = wcb
 
-		if (!points.length) {
+		this.#previousWidthCallback = this.widthCallback
+		this.widthCallback = widthCallback
+
+		if (!('length' in points)) {
 			throw new Error('not a Vector3 Array, or not a number Array or Float32Array with 3 numbers per point')
 		}
 
@@ -93,8 +100,10 @@ export class MeshLineGeometry extends BufferGeometry {
 		}
 
 		const pointCount = this.#pointCount
+		const sizeChanged = this.#previousPointCount !== pointCount
+		const wcbChanged = this.#previousWidthCallback !== this.widthCallback
 
-		if (!this.#attributes || this.#previousPointCount !== pointCount) {
+		if (!this.#attributes || sizeChanged) {
 			this.#makeNewBuffers(pointCount)
 		}
 
@@ -165,19 +174,25 @@ export class MeshLineGeometry extends BufferGeometry {
 		previousIndex += 6
 
 		for (let j = 0; j < pointCount; j++) {
-			// sides
-			setXY(this.#side, sideIndex, 1, -1)
-			sideIndex += 2
+			if (sizeChanged) {
+				// sides
+				setXY(this.#side, sideIndex, 1, -1)
+				sideIndex += 2
+			}
 
-			// widths
-			if (this.widthCallback) width = this.widthCallback(j / (pointCount - 1))
-			else width = 1
-			setXY(this.#width, widthIndex, width, width)
-			widthIndex += 2
+			if (wcbChanged || sizeChanged) {
+				// widths
+				if (this.widthCallback) width = this.widthCallback(j / (pointCount - 1))
+				else width = 1
+				setXY(this.#width, widthIndex, width, width)
+				widthIndex += 2
+			}
 
-			// uvs
-			setXYZW(this.#uvs, uvsIndex, j / (pointCount - 1), 0, j / (pointCount - 1), 1)
-			uvsIndex += 4
+			if (sizeChanged) {
+				// uvs
+				setXYZW(this.#uvs, uvsIndex, j / (pointCount - 1), 0, j / (pointCount - 1), 1)
+				uvsIndex += 4
+			}
 
 			if (j < pointCount - 1) {
 				// points previous to poisitions
@@ -190,16 +205,18 @@ export class MeshLineGeometry extends BufferGeometry {
 				setXYZXYZ(this.#previous, previousIndex, x, y, z)
 				previousIndex += 6
 
-				// indices
-				// index has one less point count than previous because it
-				// represents indices *between* points (the number of spaces
-				// between points is one less than the number of points). F.e.
-				// Given this line with 4 points, • • • •, there are 3 spaces
-				// between the points.
-				const n = j * 2
-				setXYZ(this.#indices, indicesIndex, n + 0, n + 1, n + 2)
-				setXYZ(this.#indices, indicesIndex + 3, n + 2, n + 1, n + 3)
-				indicesIndex += 6
+				if (sizeChanged) {
+					// indices
+					// index has one less point count than previous because it
+					// represents indices *between* points (the number of spaces
+					// between points is one less than the number of points). F.e.
+					// Given this line with 4 points, • • • •, there are 3 spaces
+					// between the points.
+					const n = j * 2
+					setXYZ(this.#indices, indicesIndex, n + 0, n + 1, n + 2)
+					setXYZ(this.#indices, indicesIndex + 3, n + 2, n + 1, n + 3)
+					indicesIndex += 6
+				}
 			}
 
 			if (j > 0) {
@@ -236,13 +253,15 @@ export class MeshLineGeometry extends BufferGeometry {
 		this.#attributes.position.needsUpdate = true
 		this.#attributes.previous.needsUpdate = true
 		this.#attributes.next.needsUpdate = true
-		this.#attributes.side.needsUpdate = true
-		this.#attributes.width.needsUpdate = true
-		this.#attributes.uv.needsUpdate = true
-		this.#attributes.index.needsUpdate = true
+		this.#attributes.side.needsUpdate = sizeChanged
+		this.#attributes.width.needsUpdate = sizeChanged
+		this.#attributes.uv.needsUpdate = sizeChanged
+		this.#attributes.index.needsUpdate = sizeChanged
 
-		this.computeBoundingSphere()
-		this.computeBoundingBox()
+		if (updateBounds) {
+			this.computeBoundingSphere()
+			this.computeBoundingBox()
+		}
 	}
 
 	#makeNewBuffers(pointCount: number) {

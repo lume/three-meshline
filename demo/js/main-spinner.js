@@ -48,7 +48,9 @@ function prepareMesh() {
 	}
 
 	var g = new MeshLineGeometry()
-	g.setPoints(geo, p => p)
+
+	// updateBounds is false because we don't need it, and it is costly.
+	g.setPoints(geo, null, false)
 
 	material = new MeshLineMaterial({
 		useMap: true,
@@ -65,6 +67,7 @@ function prepareMesh() {
 	})
 
 	var mesh = new MeshLine(g, material)
+	mesh.frustumCulled = false // false because we're not updating bounds in setPoints
 	mesh.geo = geo
 	mesh.g = g
 
@@ -199,7 +202,8 @@ function checkIntersection(id) {
 		geo[geo.length - 2] = intersects[0].point.y
 		geo[geo.length - 1] = d * Math.sin(angle)
 
-		g.setPoints(geo)
+		// updateBounds is false because we don't need it, and it is costly.
+		g.setPoints(geo, null, false)
 	}
 }
 
