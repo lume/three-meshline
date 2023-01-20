@@ -7,6 +7,10 @@
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
+	"exports": {
+		".": "./dist/index.js",
+		"./*": "./*"
+	},
 	"scripts": {
 		"LUME SCRIPTS /////////////////////////////////////////////": "",
 		"clean": "lume clean",
