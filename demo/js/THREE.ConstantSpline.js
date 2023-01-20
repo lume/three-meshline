@@ -70,7 +70,6 @@ ConstantSpline.prototype.calculateDistances = function () {
 	for (var j = 0; j < this.points.length - 1; j++) {
 		this.points[j].distance = td
 		this.points[j].ac = this.d
-
 		;(from = this.points[j]), (to = this.points[j + 1]), (td = to.distanceTo(from))
 
 		this.d += td

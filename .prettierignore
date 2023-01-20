@@ -1,2 +1,6 @@
 node_modules/
 dist/
+
+demo/js/dat.gui.min.js
+demo/js/Maf.js
+demo/js/pathseg.js

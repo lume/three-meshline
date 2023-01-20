@@ -6,7 +6,7 @@ export class MeshLineMaterial extends ShaderMaterial {
 	readonly isMeshLineMaterial = true
 	override readonly type = 'MeshLineMaterial'
 
-	declare uniforms: typeof UniformsLib['fog'] & {
+	declare uniforms: (typeof UniformsLib)['fog'] & {
 		lineWidth: IUniform<number>
 		map: IUniform<Texture | null>
 		useMap: IUniform<boolean>
