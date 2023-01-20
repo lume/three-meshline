@@ -4,11 +4,9 @@
 	"description": "Mesh-based replacement for THREE.Line",
 	"license": "MIT",
 	"homepage": "https://github.com/lume/three-meshline#readme",
+	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"exports": {
-		".": "./dist/index.js"
-	},
 	"scripts": {
 		"LUME SCRIPTS /////////////////////////////////////////////": "",
 		"clean": "lume clean",
