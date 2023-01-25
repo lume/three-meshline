@@ -16,30 +16,30 @@ Instead of using GL_LINE, it uses a strip of triangles billboarded. Some example
 <table>
     <tr>
       <td align="center">
-        <a href="https://docs.lume.io/three-meshline/demo/"><img width="100%" src="screenshots/demo.jpg" alt="Demo"/></a><br />
-        <a href="https://docs.lume.io/three-meshline/demo">Play</a>: play with the different mesh line options
+        <a target="_blank" href="./demo/"><img width="100%" src="screenshots/demo.jpg" alt="Demo"/></a><br />
+        <a target="_blank" href="./demo">Play</a>: play with the different mesh line options
       </td>
       <td align="center">
-        <a href="https://docs.lume.io/three-meshline/demo/graph.html"><img width="100%" src="screenshots/graph.jpg" alt="Graph"/></a><br />
-        <a href="https://docs.lume.io/three-meshline/demo/graph.html">Graph</a>: example of using `MeshLine` to plot graphs
+        <a target="_blank" href="./demo/graph.html"><img width="100%" src="screenshots/graph.jpg" alt="Graph"/></a><br />
+        <a target="_blank" href="./demo/graph.html">Graph</a>: example of using `MeshLine` to plot graphs
       </td>
       <td align="center">
-        <a href="https://docs.lume.io/three-meshline/demo/spinner.html"><img width="100%" src="screenshots/spinner.jpg" alt="Spinner"/></a><br />
-        <a href="https://docs.lume.io/three-meshline/demo/spinner.html">Spinner</a>: example of dynamic `MeshLine` with texture
+        <a target="_blank" href="./demo/spinner.html"><img width="100%" src="screenshots/spinner.jpg" alt="Spinner"/></a><br />
+        <a target="_blank" href="./demo/spinner.html">Spinner</a>: example of dynamic `MeshLine` with texture
       </td>
     </tr>
     <tr>
       <td align="center">
-        <a href="https://docs.lume.io/three-meshline/demo/svg.html"><img width="100%" src="screenshots/svg.jpg" alt="SVG"/></a><br />
-        <a href="https://docs.lume.io/three-meshline/demo/svg.html">SVG</a>: example of `MeshLine` rendering SVG Paths
+        <a target="_blank" href="./demo/svg.html"><img width="100%" src="screenshots/svg.jpg" alt="SVG"/></a><br />
+        <a target="_blank" href="./demo/svg.html">SVG</a>: example of `MeshLine` rendering SVG Paths
       </td>
       <td align="center">
-        <a href="https://docs.lume.io/three-meshline/demo/shape.html"><img width="100%" src="screenshots/shape.jpg" alt="Shape"/></a><br />
-        <a href="https://docs.lume.io/three-meshline/demo/shape.html">Shape</a>: example of `MeshLine` created from an OBJ file
+        <a target="_blank" href="./demo/shape.html"><img width="100%" src="screenshots/shape.jpg" alt="Shape"/></a><br />
+        <a target="_blank" href="./demo/shape.html">Shape</a>: example of `MeshLine` created from an OBJ file
       </td>
       <td align="center">
-        <a href="https://docs.lume.io/three-meshline/demo/birds.html"><img width="100%" src="screenshots/birds.jpg" alt="Birds"/></a><br />
-        <a href="https://docs.lume.io/three-meshline/demo/birds.html">Birds</a>: example of `MeshLine.advance()` by @caramelcode (Jared Sprague) and @mwcz (Michael Clayton)
+        <a target="_blank" href="./demo/birds.html"><img width="100%" src="screenshots/birds.jpg" alt="Birds"/></a><br />
+        <a target="_blank" href="./demo/birds.html">Birds</a>: example of `MeshLine.advance()` by @caramelcode (Jared Sprague) and @mwcz (Michael Clayton)
       </td>
     </tr>
 </table>
@@ -204,8 +204,8 @@ live
 [here](https://codesandbox.io/s/react-three-fiber-three.meshline-example-vl221).
 
 <p align="center">
-	<a href="https://codesandbox.io/s/react-three-fiber-threejs-meshline-example-vl221"><img width="49%" src="https://imgur.com/mZikTAH.gif" alt="react-three-fiber confetti" /></a>
-	<a href="https://codesandbox.io/s/threejs-meshline-custom-spring-3-ypkxx"><img width="49%" src="https://imgur.com/g8ts0vJ.gif" alt="react-three-fiber sine wave" /></a>
+	<a target="_blank" href="https://codesandbox.io/s/react-three-fiber-threejs-meshline-example-vl221"><img width="49%" src="https://imgur.com/mZikTAH.gif" alt="react-three-fiber confetti" /></a>
+	<a target="_blank" href="https://codesandbox.io/s/threejs-meshline-custom-spring-3-ypkxx"><img width="49%" src="https://imgur.com/g8ts0vJ.gif" alt="react-three-fiber sine wave" /></a>
 </p>
 
 ```jsx
