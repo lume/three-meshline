@@ -16,8 +16,8 @@ Instead of using GL_LINE, it uses a strip of triangles billboarded. Some example
 <table>
     <tr>
       <td align="center">
-        <a target="_blank" href="./demo/"><img width="100%" src="screenshots/demo.jpg" alt="Demo"/></a><br />
-        <a target="_blank" href="./demo">Play</a>: play with the different mesh line options
+        <a target="_blank" href="./demo/index.html"><img width="100%" src="screenshots/demo.jpg" alt="Demo"/></a><br />
+        <a target="_blank" href="./demo/index.html">Play</a>: play with the different mesh line options
       </td>
       <td align="center">
         <a target="_blank" href="./demo/graph.html"><img width="100%" src="screenshots/graph.jpg" alt="Graph"/></a><br />
