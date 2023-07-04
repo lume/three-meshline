@@ -48,22 +48,29 @@ ShaderChunk['meshline_vert'] = /*glsl*/ `
 	    float w = lineWidth * width;
 	
 	    vec2 dir;
-	    if( nextP == currentP ) dir = normalize( currentP - prevP );
-	    else if( prevP == currentP ) dir = normalize( nextP - currentP );
-	    else {
+	    vec4 normal;
+	    if( nextP == currentP ) {
+	      dir = normalize( currentP - prevP );
+	      normal = vec4( -dir.y, dir.x, 0., 1. );
+	      normal.xy *= .5 * w;
+	    } else if( prevP == currentP ) {
+	      dir = normalize( nextP - currentP );
+	      normal = vec4( -dir.y, dir.x, 0., 1. );
+	      normal.xy *= .5 * w;
+	    } else {
 	        vec2 dir1 = normalize( currentP - prevP );
 	        vec2 dir2 = normalize( nextP - currentP );
 	        dir = normalize( dir1 + dir2 );
-	
+	        normal = vec4( -dir.y, dir.x, 0., 1. );
+
 	        vec2 perp = vec2( -dir1.y, dir1.x );
 	        vec2 miter = vec2( -dir.y, dir.x );
+	        float d = .5 * w / dot( perp, miter );
 	        //w = clamp( w / dot( miter, perp ), 0., 4. * lineWidth * width );
-	
+	        normal.xy *= d;
 	    }
 	
 	    //vec2 normal = ( cross( vec3( dir, 0. ), vec3( 0., 0., 1. ) ) ).xy;
-	    vec4 normal = vec4( -dir.y, dir.x, 0., 1. );
-	    normal.xy *= .5 * w;
 	    normal *= projectionMatrix;
 	    if( sizeAttenuation == 0. ) {
 	        normal.xy *= finalPosition.w;
