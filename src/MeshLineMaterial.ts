@@ -12,7 +12,7 @@ export class MeshLineMaterial extends ShaderMaterial {
 		useMap: IUniform<boolean>
 		alphaMap: IUniform<Texture | null>
 		useAlphaMap: IUniform<boolean>
-		color: IUniform<Color>
+		aColor: IUniform<Color>
 		opacity: IUniform<number>
 		resolution: IUniform<Vector2>
 		sizeAttenuation: IUniform<boolean>
@@ -33,7 +33,7 @@ export class MeshLineMaterial extends ShaderMaterial {
 				useMap: {value: false},
 				alphaMap: {value: null},
 				useAlphaMap: {value: false},
-				color: {value: new Color(0xffffff)},
+				aColor: {value: new Color(0xffffff)},
 				opacity: {value: 1},
 				resolution: {value: new Vector2(1, 1)},
 				sizeAttenuation: {value: true},
@@ -137,10 +137,10 @@ export class MeshLineMaterial extends ShaderMaterial {
 			color: {
 				enumerable: true,
 				get: () => {
-					return this.uniforms.color.value
+					return this.uniforms.aColor.value
 				},
 				set: value => {
-					this.uniforms.color.value = value
+					this.uniforms.aColor.value = value
 				},
 			},
 			opacity: {
