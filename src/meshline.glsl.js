@@ -1,6 +1,7 @@
 import {ShaderChunk} from 'three'
 
 ShaderChunk['meshline_vert'] = /*glsl*/ `
+	#include <common>
 	${ShaderChunk.logdepthbuf_pars_vertex}
 	${ShaderChunk.fog_pars_vertex}
 	
